@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CORRIDOR</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { width:1920px; height:1080px; overflow:hidden; background:#05070a; }
+  #stage {
+    position:absolute; inset:0; overflow:hidden;
+    background:#05070a;
+    font-family:"Courier New", Courier, monospace;
+  }
+
+  /* ---------- the corridor itself: real perspective, not a flat gradient ---------- */
+  #corridor {
+    position:absolute; inset:0;
+    perspective: 620px;
+    perspective-origin: 50% 52%;
+  }
+  #hallway {
+    position:absolute; left:50%; top:50%;
+    width:1000px; height:1000px;
+    transform: translate(-50%,-50%) rotateX(0deg);
+    transform-style: preserve-3d;
+  }
+
+  /* back wall at the far end */
+  #farwall {
+    position:absolute; left:50%; top:50%;
+    width:260px; height:300px;
+    transform: translate(-50%,-52%) translateZ(-620px);
+    background:
+      linear-gradient(180deg, #0c1116 0%, #090d11 55%, #060a0d 100%);
+    box-shadow: inset 0 0 60px rgba(0,0,0,0.9);
+  }
+  /* the light under the door at the far end: the only source in the frame */
+  #doorlight {
+    position:absolute; left:50%; bottom:6%;
+    width:74px; height:5px;
+    transform: translateX(-50%);
+    background: linear-gradient(90deg,#1d3a3d 0%,#6fd6c4 18%,#bff0e4 50%,#6fd6c4 82%,#1d3a3d 100%);
+    filter: blur(1.6px);
+    box-shadow: 0 0 26px 7px rgba(120,224,204,0.55), 0 0 70px 22px rgba(90,190,175,0.22);
+    opacity:0.92;
+  }
+  /* the spill of that light on the floor, reaching toward camera */
+  #floorspill {
+    position:absolute; left:50%; top:50%;
+    width:120px; height:640px;
+    transform: translate(-50%,-2%) translateZ(-300px) rotateX(90deg);
+    transform-origin: 50% 0%;
+    background: linear-gradient(180deg, rgba(150,240,220,0.30) 0%, rgba(110,200,185,0.10) 30%, rgba(60,120,115,0.02) 62%, rgba(0,0,0,0) 100%);
+    filter: blur(6px);
+  }
+
+  /* side walls */
+  .wall {
+    position:absolute; top:50%;
+    width:620px; height:1000px;
+    transform-origin: 50% 50%;
+    background:
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.012) 0 3px, rgba(0,0,0,0) 3px 96px),
+      linear-gradient(180deg, #0d1217 0%, #0a0e12 60%, #070a0d 100%);
+  }
+  #wallL { left:50%; transform: translate(-100%,-50%) rotateY(-78deg) translateZ(0); }
+  #wallR { left:50%; transform: translate(0,-50%) rotateY(78deg) translateZ(0); }
+
+  /* floor and ceiling */
+  #floor {
+    position:absolute; left:50%; top:50%;
+    width:1000px; height:900px;
+    transform: translate(-50%,-100%) rotateX(84deg);
+    transform-origin: 50% 100%;
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.026) 0 2px, rgba(0,0,0,0) 2px 120px),
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.018) 0 2px, rgba(0,0,0,0) 2px 150px),
+      linear-gradient(180deg, #0b0f13 0%, #070a0d 70%, #05080a 100%);
+  }
+  #ceiling {
+    position:absolute; left:50%; top:50%;
+    width:1000px; height:700px;
+    transform: translate(-50%,0) rotateX(-84deg);
+    transform-origin: 50% 0%;
+    background: linear-gradient(0deg, #0a0e12 0%, #06090c 60%, #040608 100%);
+  }
+
+  /* the doorway frames receding into depth, gives the eye distance cues */
+  .frame {
+    position:absolute; left:50%; top:50%;
+    border:2px solid rgba(150,220,210,0.055);
+    transform: translate(-50%,-50%);
+    box-shadow: inset 0 0 40px rgba(0,0,0,0.7);
+  }
+
+  /* ---------- the figure: never walks, never performs ---------- */
+  #figure {
+    position:absolute; left:50%; top:50%;
+    width:52px; height:210px;
+    transform: translate(-50%,-100%) translateZ(-430px);
+    opacity:0;
+    filter: blur(0.7px);
+  }
+  #figure .head {
+    position:absolute; left:50%; top:0;
+    width:22px; height:28px;
+    transform: translateX(-50%);
+    border-radius:48% 48% 44% 44%;
+    background:#04070a;
+    box-shadow: 0 0 6px rgba(0,0,0,1);
+  }
+  #figure .torso {
+    position:absolute; left:50%; top:27px;
+    width:34px; height:86px;
+    transform: translateX(-50%);
+    border-radius:34% 34% 26% 26%;
+    background:#03060a;
+  }
+  #figure .legs {
+    position:absolute; left:50%; top:110px;
+    width:26px; height:100px;
+    transform: translateX(-50%);
+    background: linear-gradient(90deg,#03060a 0 10px, rgba(0,0,0,0) 10px 16px, #03060a 16px 26px);
+  }
+  /* a hair of rim light so it reads as a body, not a blob */
+  #figure .rim {
+    position:absolute; left:50%; top:0;
+    width:52px; height:210px;
+    transform: translateX(-50%);
+    background: radial-gradient(ellipse 30% 60% at 68% 42%, rgba(140,235,215,0.16), rgba(0,0,0,0) 70%);
+  }
+
+  /* ---------- handheld drift: the whole camera, breathing ---------- */
+  #camera { position:absolute; inset:-40px; }
+
+  /* ---------- dirty lens / tape overlays ---------- */
+  #scanlines {
+    position:absolute; inset:0; pointer-events:none;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,0.30) 0 1px, rgba(0,0,0,0) 1px 3px);
+    opacity:0.75; mix-blend-mode:multiply;
+  }
+  #vignette {
+    position:absolute; inset:0; pointer-events:none;
+    background: radial-gradient(ellipse 70% 62% at 50% 50%, rgba(0,0,0,0) 42%, rgba(0,0,0,0.55) 78%, rgba(0,0,0,0.92) 100%);
+  }
+  #grain {
+    position:absolute; inset:-60px; pointer-events:none;
+    opacity:0.16;
+    background-image:
+      repeating-conic-gradient(rgba(255,255,255,0.55) 0% 0.6%, rgba(0,0,0,0) 0.6% 1.4%);
+    background-size: 3px 3px;
+  }
+  #dirt {
+    position:absolute; inset:0; pointer-events:none; opacity:0.5;
+    background-image:
+      radial-gradient(circle 3px at 12% 22%, rgba(255,255,255,0.10), rgba(0,0,0,0) 100%),
+      radial-gradient(circle 5px at 78% 14%, rgba(255,255,255,0.07), rgba(0,0,0,0) 100%),
+      radial-gradient(circle 2px at 41% 71%, rgba(255,255,255,0.09), rgba(0,0,0,0) 100%),
+      radial-gradient(circle 7px at 88% 63%, rgba(255,255,255,0.05), rgba(0,0,0,0) 100%),
+      radial-gradient(circle 2px at 23% 88%, rgba(255,255,255,0.08), rgba(0,0,0,0) 100%),
+      radial-gradient(circle 4px at 63% 41%, rgba(255,255,255,0.06), rgba(0,0,0,0) 100%);
+  }
+  #rollbar {
+    position:absolute; left:0; right:0; height:120px; pointer-events:none;
+    background: linear-gradient(180deg, rgba(180,255,240,0) 0%, rgba(180,255,240,0.055) 50%, rgba(180,255,240,0) 100%);
+    top:-20%;
+  }
+  #dropout {
+    position:absolute; left:0; right:0; height:6px; pointer-events:none;
+    background: rgba(210,255,250,0.20);
+    opacity:0;
+  }
+  /* chroma split */
+  #chroma {
+    position:absolute; inset:0; pointer-events:none;
+    box-shadow: inset 2px 0 0 rgba(255,60,60,0.05), inset -2px 0 0 rgba(60,255,255,0.05);
+    mix-blend-mode:screen;
+  }
+
+  /* ---------- HUD ---------- */
+  #hud {
+    position:absolute; inset:0; pointer-events:none;
+    color:#9fe0d2; font-size:19px; letter-spacing:2px;
+    text-shadow:0 0 6px rgba(120,240,215,0.45);
+  }
+  .hud-tl { position:absolute; left:64px; top:52px; }
+  .hud-tr { position:absolute; right:64px; top:52px; text-align:right; }
+  .hud-bl { position:absolute; left:64px; bottom:56px; }
+  .hud-br { position:absolute; right:64px; bottom:56px; text-align:right; }
+  #rec { color:#ff4a3d; }
+  #recdot {
+    display:inline-block; width:13px; height:13px; border-radius:50%;
+    background:#ff4a3d; box-shadow:0 0 10px 3px rgba(255,74,61,0.6);
+    margin-right:9px; vertical-align:-1px;
+  }
+  .dim { color:#5f9a90; }
+  .warn { color:#ff4a3d; }
+
+  /* audio level meter: must move, and must fall silent at 24s */
+  #meter { margin-top:12px; display:flex; gap:3px; align-items:flex-end; height:26px; }
+  #meter .b { width:5px; background:#9fe0d2; opacity:0.75; height:4px; }
+
+  /* subtitles, used sparingly and flatly. no cards, no boxes. */
+  #sub {
+    position:absolute; left:50%; bottom:132px;
+    transform:translateX(-50%);
+    text-align:center; letter-spacing:5px;
+    font-size:22px; color:#cfe9e2; opacity:0;
+    text-shadow:0 0 10px rgba(0,0,0,0.95);
+  }
+  #sub b { display:block; font-weight:normal; font-size:17px; color:#7fb3a9; margin-top:10px; letter-spacing:6px; }
+
+  #eof {
+    position:absolute; left:50%; top:50%;
+    transform:translate(-50%,-50%);
+    font-size:30px; letter-spacing:14px; color:#dbeee9;
+    opacity:0;
+  }
+
+  #blackout { position:absolute; inset:0; background:#000; opacity:0; }
+  #faultflash { position:absolute; inset:0; background:#0a0f12; opacity:0; }
+</style>
+</head>
+<body>
+<div id="stage" data-composition-id="main" data-width="1920" data-height="1080" data-duration="58">
+  <div id="camera">
+    <div id="corridor">
+      <div id="hallway">
+        <div id="farwall"><div id="doorlight"></div></div>
+        <div id="floorspill"></div>
+        <div class="wall" id="wallL"></div>
+        <div class="wall" id="wallR"></div>
+        <div id="floor"></div>
+        <div id="ceiling"></div>
+        <div id="figure"><div class="rim"></div><div class="head"></div><div class="torso"></div><div class="legs"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="scanlines"></div>
+  <div id="grain"></div>
+  <div id="dirt"></div>
+  <div id="rollbar"></div>
+  <div id="dropout"></div>
+  <div id="vignette"></div>
+  <div id="chroma"></div>
+  <div id="faultflash"></div>
+
+  <div id="hud">
+    <div class="hud-tl">
+      <div id="recline"><span id="recdot"></span><span id="rec">REC</span></div>
+      <div class="dim" style="margin-top:10px">CAM-04 · CH-B · IR</div>
+      <div class="dim" id="fps">25 FPS · 720P</div>
+    </div>
+    <div class="hud-tr">
+      <div id="hud-tc">03:14:07:00</div>
+      <div class="dim" id="hud-date" style="margin-top:10px">--/--/-- --:--</div>
+      <div class="dim" id="hud-elapsed" style="margin-top:10px">T+00:00</div>
+    </div>
+    <div class="hud-bl">
+      <div class="dim">AUDIO · SOURCE UNKNOWN</div>
+      <div id="meter"></div>
+    </div>
+    <div class="hud-br">
+      <div class="dim" id="hud-src">SIG 62%</div>
+      <div class="dim" id="hud-state" style="margin-top:10px">STANDBY</div>
+    </div>
+  </div>
+
+  <div id="sub"></div>
+  <div id="eof">END OF FILE</div>
+  <div id="blackout"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<script>
+(function () {
+  var DUR = 58;
+  gsap.registerPlugin();
+
+  /* ---------------- build the depth frames ---------------- */
+  var hallway = document.getElementById('hallway');
+  // receding rectangular frames: cheap but they sell depth
+  var depths = [-120, -220, -330, -450, -560];
+  var sizes  = [860, 700, 545, 400, 300];
+  depths.forEach(function (z, i) {
+    var f = document.createElement('div');
+    f.className = 'frame';
+    f.style.width  = sizes[i] + 'px';
+    f.style.height = Math.round(sizes[i] * 0.72) + 'px';
+    f.style.transform = 'translate(-50%,-50%) translateZ(' + z + 'px)';
+    f.style.opacity = (0.55 - i * 0.09).toFixed(3);
+    hallway.appendChild(f);
+  });
+
+  /* ---------------- the audio meter ---------------- */
+  var meter = document.getElementById('meter');
+  var bars = [];
+  for (var i = 0; i < 14; i++) {
+    var b = document.createElement('div');
+    b.className = 'b';
+    meter.appendChild(b);
+    bars.push(b);
+  }
+
+  /* ---------------- timecode ---------------- */
+  var START = 3 * 3600 + 14 * 60 + 7;   // 03:14:07
+  var tcEl = document.getElementById('hud-tc');
+  var elEl = document.getElementById('hud-elapsed');
+  var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+  function paintTC(t) {
+    // 30s onward the clock gains then loses time against itself
+    var drift = 0;
+    if (t > 30 && t < 38) drift = (t - 30) * 0.22;
+    else if (t >= 38 && t < 47) drift = 1.76 - (t - 38) * 0.195;
+    var rec = t + drift;
+    var frames = Math.floor(rec * 25);
+    var s = Math.floor(frames / 25);
+    var f = frames % 25;
+    var hh = Math.floor((START + s) / 3600);
+    var mm = Math.floor(((START + s) % 3600) / 60);
+    var ss = (START + s) % 60;
+    tcEl.textContent = pad(hh) + ':' + pad(mm) + ':' + pad(ss) + ':' + pad(f);
+    elEl.textContent = 'T+' + pad(Math.floor(t / 60)) + ':' + pad(Math.floor(t % 60));
+  }
+  paintTC(0);
+
+  /* ---------------- master timeline ---------------- */
+  var tl = gsap.timeline({ paused: true });
+
+  /* == S1 0-24: nothing happens == */
+  // the camera breathes. slow, irregular, never repeating exactly.
+  tl.to('#camera', { x: -7, y: 5, duration: 7.3, ease: 'sine.inOut' }, 0);
+  tl.to('#camera', { x: 6, y: -3, duration: 8.9, ease: 'sine.inOut' }, 7.3);
+  tl.to('#camera', { x: -4, y: 6, duration: 7.7, ease: 'sine.inOut' }, 16.2);
+
+  // the far light flickers on its own schedule, like a bad ballast
+  tl.to('#doorlight', { opacity: 0.72, duration: 1.9, ease: 'sine.inOut' }, 3.1);
+  tl.to('#doorlight', { opacity: 0.95, duration: 2.6, ease: 'sine.inOut' }, 5.0);
+  tl.to('#doorlight', { opacity: 0.66, duration: 0.9, ease: 'sine.in' }, 9.4);
+  tl.to('#doorlight', { opacity: 0.93, duration: 3.4, ease: 'sine.out' }, 10.3);
+  tl.to('#doorlight', { opacity: 0.78, duration: 2.2, ease: 'sine.inOut' }, 15.6);
+  tl.to('#doorlight', { opacity: 0.96, duration: 4.1, ease: 'sine.inOut' }, 18.0);
+
+  // meter sits around mid and moves a little. it is not "quiet" yet.
+  bars.forEach(function (b, i) {
+    tl.to(b, {
+      height: 6 + (i % 4) * 5 + Math.random() * 9,
+      duration: 0.32 + (i % 3) * 0.13,
+      repeat: 30,
+      yoyo: true,
+      ease: 'sine.inOut'
+    }, 0.4 + i * 0.05);
+  });
+
+  // grain drifts constantly
+  tl.to('#grain', { x: 13, y: -9, duration: 0.19, repeat: 130, ease: 'steps(1)' }, 0);
+  // slow rolling brightness band, the CRT-ish one
+  tl.to('#rollbar', { top: '108%', duration: 11.5, repeat: 4, ease: 'none' }, 1.2);
+  // scanline shimmer
+  tl.to('#scanlines', { opacity: 0.62, duration: 0.24, repeat: 100, yoyo: true, ease: 'sine.inOut' }, 0);
+
+  /* the one event: 24.0 -> 25.2 */
+  // the far light is blocked. nothing enters frame.
+  tl.to('#doorlight', { opacity: 0.10, duration: 0.18, ease: 'none' }, 24.0);
+  tl.to('#floorspill', { opacity: 0.12, duration: 0.22, ease: 'none' }, 24.0);
+  tl.to('#doorlight', { opacity: 0.86, duration: 0.24, ease: 'none' }, 25.18);
+  tl.to('#floorspill', { opacity: 1, duration: 0.3, ease: 'none' }, 25.18);
+  // the meter drops to nothing. this is the visual echo of the audio cut.
+  bars.forEach(function (b, i) {
+    tl.to(b, { height: 3, duration: 0.12, ease: 'none' }, 24.0 + i * 0.004);
+  });
+  // a single dropped frame at the event
+  tl.to('#faultflash', { opacity: 0.55, duration: 0.04, ease: 'none' }, 24.0);
+  tl.to('#faultflash', { opacity: 0, duration: 0.06, ease: 'none' }, 24.04);
+  tl.to('#sub', { opacity: 0, duration: 0.01 }, 24.0);
+
+  /* == S2 26-44: wrong, quietly == */
+  // the far light comes back lower than before and stays lower
+  tl.to('#doorlight', { opacity: 0.58, duration: 3.2, ease: 'sine.inOut' }, 26.4);
+  tl.to('#floorspill', { opacity: 0.72, duration: 3.2, ease: 'sine.inOut' }, 26.4);
+
+  // the figure is simply there when you look again. 90 frames of nothing, then it is.
+  tl.to('#figure', { opacity: 0.88, duration: 0.01 }, 31.0);
+  tl.set('#figure', { filter: 'blur(2.4px)' }, 30.99);
+  tl.to('#figure', { filter: 'blur(0.5px)', duration: 6.5, ease: 'none' }, 31.0);
+
+  // the signage on the wall flips: a mirrored plate that was never mirrored
+  tl.to('#hud-src', { opacity: 0.35, duration: 0.5 }, 27.6);
+  tl.to('#hud-src', { opacity: 1, duration: 2.4 }, 28.1);
+
+  // the clock runs fast then drags back. it is fighting the recorder.
+
+  // occasional horizontal tearing, not constantly
+  [29.4, 33.8, 37.2, 40.9, 43.1].forEach(function (t) {
+    tl.to('#camera', { x: '-=11', duration: 0.05, ease: 'steps(1)' }, t);
+    tl.to('#camera', { x: '+=11', duration: 0.09, ease: 'steps(1)' }, t + 0.05);
+  });
+
+  // the figure tilts its head. once. barely. this is the only movement it makes.
+  tl.to('#figure .head', { y: 3, rotation: 7, transformOrigin: '50% 90%', duration: 1.4, ease: 'sine.inOut' }, 39.2);
+  tl.to('#figure .head', { y: 1, rotation: 3, duration: 2.6, ease: 'sine.inOut' }, 41.4);
+
+  /* == S3 44-58: it all comes apart == */
+  // figure gone. not faded out. just not there on the next frame.
+  tl.set('#figure', { opacity: 0 }, 44.4);
+
+  // the room tone thins: visually, the spill and light pull back
+  tl.to('#doorlight', { opacity: 0.16, duration: 2.4, ease: 'sine.out' }, 44.4);
+  tl.to('#floorspill', { opacity: 0.18, duration: 2.4, ease: 'sine.out' }, 44.4);
+
+  // frames start repeating themselves
+  [46.8, 50.8, 54.4].forEach(function (t) {
+    tl.to('#faultflash', { opacity: 0.85, duration: 0.05, ease: 'none' }, t);
+    tl.to('#faultflash', { opacity: 0, duration: 0.05, ease: 'none' }, t + 0.05);
+  });
+
+  // tearing gets worse
+  [45.2, 47.9, 49.6, 51.3, 53.0].forEach(function (t) {
+    tl.to('#camera', { x: '-=22', y: '+=3', duration: 0.04, ease: 'steps(1)' }, t);
+    tl.to('#camera', { x: '+=22', y: '-=3', duration: 0.07, ease: 'steps(1)' }, t + 0.04);
+  });
+
+  // dropout bars, tape damage
+  [46.1, 49.2, 52.4, 55.1].forEach(function (t, i) {
+    tl.set('#dropout', { top: (22 + i * 17) + '%' }, t);
+    tl.to('#dropout', { opacity: 0.22, duration: 0.07, ease: 'steps(1)' }, t);
+    tl.to('#dropout', { opacity: 0, duration: 0.25, ease: 'steps(1)' }, t + 0.07);
+  });
+
+  // the picture freezes: everything stops, but the recorder does not
+  tl.to('#camera', { x: 0, y: 0, duration: 0.6, ease: 'none' }, 54.4);
+  tl.to('#grain', { opacity: 0.16, duration: 0.6 }, 54.4);
+  tl.to('#scanlines', { opacity: 0.75, duration: 0.6 }, 54.4);
+
+  // after the freeze the only living things are the red dot and the clock
+  tl.call(function () { document.getElementById('hud-state').textContent = ''; }, [], 44.5);
+
+  // hard cut to white on black, but the dot keeps flashing
+  tl.to('#blackout', { opacity: 1, duration: 0.12, ease: 'none' }, 56.4);
+  tl.to('#eof', { opacity: 1, duration: 0.5, ease: 'none' }, 56.7);
+
+  // subtitles. four lines total, none of them explain anything.
+  function sub(t, main, small, inDur, outDur) {
+    tl.fromTo('#sub', { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: inDur || 0.8, ease: 'sine.out' }, t);
+    tl.to('#sub', { opacity: 0, duration: outDur || 0.7, ease: 'sine.in' }, t + (inDur || 0.8) + 3.2);
+  }
+  tl.call(function () {
+    document.getElementById('sub').innerHTML = 'RECORDING<b>NO OPERATOR DETECTED</b>';
+  }, [], 6.0);
+  sub(6.2);
+  tl.call(function () {
+    document.getElementById('sub').innerHTML = '...';
+  }, [], 18.8);
+  sub(19.0);
+  tl.call(function () {
+    document.getElementById('sub').innerHTML = 'AUDIO SOURCE LOST<b>CAMERA STILL RECORDING</b>';
+    gsap.fromTo('#sub', { opacity: 0 }, { opacity: 1, duration: 1.2, ease: 'sine.out' });
+  }, [], 25.4);
+  tl.to('#sub', { opacity: 0, duration: 1.1, ease: 'sine.in' }, 28.6);
+  tl.call(function () {
+    document.getElementById('sub').innerHTML = 'IT IS STILL RECORDING';
+    gsap.fromTo('#sub', { opacity: 0 }, { opacity: 1, duration: 1.6, ease: 'sine.out' });
+  }, [], 47.6);
+  tl.to('#sub', { opacity: 0, duration: 1.4, ease: 'sine.in' }, 51.2);
+
+  // frame-accurate tick for the clock and the REC dot
+  for (var f = 0; f <= DUR * 25; f++) {
+    (function (frame) {
+      var t = frame / 25;
+      tl.call(function () {
+        paintTC(t);
+        document.getElementById('recdot').style.opacity = (Math.floor(t * 2) % 2 === 0) ? '1' : '0.12';
+      }, [], t);
+    })(f);
+  }
+
+  window.__timelines = window.__timelines || {};
+  window.__timelines['main'] = tl;
+})();
+</script>
+</body>
+</html>
