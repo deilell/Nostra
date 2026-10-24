@@ -1,0 +1,75 @@
+name: render-vibeds2
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'vibeds2/**'
+      - '.github/workflows/render-vibeds2.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      HYPERFRAMES_TELEMETRY: "0"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install ffmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+
+      - name: Install Chromium dependencies
+        run: |
+          sudo apt-get install -y -qq \
+            libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 \
+            libdrm2 libxkbcommon0 libgbm1 libasound2t64 \
+            libpango-1.0-0 libcairo2 libxcomposite1 libxdamage1 \
+            libxfixes3 libxrandr2 libxshmfence1 libx11-xcb1 \
+            fonts-noto-cjk fonts-noto-color-emoji || \
+          sudo apt-get install -y -qq \
+            libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 \
+            libdrm2 libxkbcommon0 libgbm1 libasound2 \
+            libpango-1.0-0 libcairo2 libxcomposite1 libxdamage1 \
+            libxfixes3 libxrandr2 libxshmfence1 libx11-xcb1 || true
+
+      - name: Install hyperframes
+        working-directory: vibeds2
+        run: npm install -D hyperframes
+
+      - name: Lint (non-blocking)
+        working-directory: vibeds2
+        run: npx hyperframes lint || true
+
+      - name: Render
+        working-directory: vibeds2
+        run: |
+          npx hyperframes render 2>&1 | tee /tmp/render.log
+          echo '--- render log tail ---'
+          tail -n 40 /tmp/render.log
+
+      - name: Collect output
+        working-directory: vibeds2
+        run: |
+          mkdir -p out
+          find . -name '*.mp4' -type f -not -path './node_modules/*' -exec cp {} out/ \;
+          ls -lah out/ || true
+
+      - name: Upload MP4
+        uses: actions/upload-artifact@v4
+        with:
+          name: r3v-selfintro-video
+          path: vibeds2/out/**/*.mp4
+          if-no-files-found: warn
+          retention-days: 7
