@@ -1,0 +1,76 @@
+name: render-vibeds3
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'vibeds3/**'
+      - '.github/workflows/render-vibeds3.yml'
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      HYPERFRAMES_TELEMETRY: "0"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install ffmpeg
+        run: sudo apt-get update -qq && sudo apt-get install -y ffmpeg
+
+      - name: Install Chromium deps
+        run: |
+          sudo apt-get install -y libasound2t64 || sudo apt-get install -y libasound2 || true
+          sudo apt-get install -y \
+            libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 \
+            libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libpango-1.0-0 \
+            libcairo2 libasound2t64 || true
+
+      - name: Install hyperframes
+        working-directory: vibeds3
+        run: npm install -D hyperframes
+
+      - name: Generate audio
+        working-directory: vibeds3
+        run: |
+          mkdir -p audio
+          chmod +x tools/build_audio.sh
+          ./tools/build_audio.sh 56 audio/drone.wav
+          ls -l audio/
+
+      - name: Lint
+        working-directory: vibeds3
+        run: npx hyperframes lint || true
+
+      - name: Render
+        working-directory: vibeds3
+        run: npx hyperframes render 2>&1 | tee /tmp/render.log
+
+      - name: Collect output
+        working-directory: vibeds3
+        run: |
+          mkdir -p out
+          find . -name '*.mp4' -not -path './node_modules/*' -exec cp {} out/ \;
+          ls -l out/
+
+      - name: Mux audio
+        working-directory: vibeds3
+        run: |
+          set -x
+          SRC=$(find out -name '*.mp4' | head -1)
+          echo "SRC=$SRC"
+          ffmpeg -y -i "$SRC" -i audio/drone.wav -c:v copy -c:a aac -b:a 192k -shortest out/final.mp4
+          ls -l out/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r3v-unknown-footage
+          path: |
+            vibeds3/out/final.mp4
+            vibeds3/audio/drone.wav
+          if-no-files-found: warn

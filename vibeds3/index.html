@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>来源不明的录像</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+      body { font-family: "Courier New", ui-monospace, monospace; }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        background: #05070a;
+        overflow: hidden;
+        color: #cfd8d4;
+      }
+      .scene { position: absolute; inset: 0; width: 100%; height: 100%; }
+      .ln { display: block; }
+
+      /* ---------- 全局扫描线 / 噪点 / 暗角 ---------- */
+      .scanlines {
+        position: absolute;
+        inset: 0;
+        background: repeating-linear-gradient(
+          to bottom,
+          rgba(0, 0, 0, 0.44) 0px,
+          rgba(0, 0, 0, 0.44) 1px,
+          rgba(0, 0, 0, 0) 1px,
+          rgba(0, 0, 0, 0) 3px
+        );
+        opacity: 0.72;
+        pointer-events: none;
+      }
+      .sweep {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 180px;
+        background: linear-gradient(
+          to bottom,
+          rgba(180, 230, 220, 0) 0%,
+          rgba(180, 230, 220, 0.038) 46%,
+          rgba(180, 230, 220, 0.06) 50%,
+          rgba(180, 230, 220, 0.038) 54%,
+          rgba(180, 230, 220, 0) 100%
+        );
+        pointer-events: none;
+      }
+      .grain {
+        position: absolute;
+        inset: -10%;
+        opacity: 0.09;
+        pointer-events: none;
+        background-image:
+          repeating-radial-gradient(circle at 17% 29%, rgba(255,255,255,0.5) 0 1px, transparent 1px 3px),
+          repeating-radial-gradient(circle at 71% 63%, rgba(255,255,255,0.4) 0 1px, transparent 1px 4px);
+        background-size: 3px 3px, 5px 5px;
+        mix-blend-mode: screen;
+      }
+      .vignette {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse at 50% 50%, transparent 26%, rgba(0, 0, 0, 0.92) 100%);
+        pointer-events: none;
+      }
+      .blackout {
+        position: absolute;
+        inset: 0;
+        background: #000;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      /* ---------- HUD ---------- */
+      .hud {
+        position: absolute;
+        font-size: 24px;
+        letter-spacing: 0.14em;
+        color: #9fd8cc;
+        opacity: 0.82;
+        text-shadow: 0 0 10px rgba(120, 220, 200, 0.35);
+      }
+      #hud-tc { left: 76px; top: 62px; }
+      #hud-cam { right: 76px; top: 62px; text-align: right; }
+      #hud-rec { left: 76px; bottom: 66px; display: flex; align-items: center; gap: 14px; }
+      #hud-src { right: 76px; bottom: 66px; text-align: right; color: #7f9a92; }
+      .dot {
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        background: #ff4a3d;
+        box-shadow: 0 0 14px rgba(255, 74, 61, 0.9);
+        display: inline-block;
+      }
+      .corner {
+        position: absolute;
+        width: 74px;
+        height: 74px;
+        border-color: rgba(159, 216, 204, 0.5);
+        border-style: solid;
+        border-width: 0;
+      }
+      .c-tl { left: 46px; top: 46px; border-left-width: 2px; border-top-width: 2px; }
+      .c-tr { right: 46px; top: 46px; border-right-width: 2px; border-top-width: 2px; }
+      .c-bl { left: 46px; bottom: 46px; border-left-width: 2px; border-bottom-width: 2px; }
+      .c-br { right: 46px; bottom: 46px; border-right-width: 2px; border-bottom-width: 2px; }
+
+      /* ---------- 画面主体 ---------- */
+      .stage {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 1180px;
+        height: 620px;
+        margin-left: -590px;
+        margin-top: -310px;
+      }
+      .room {
+        position: absolute;
+        inset: 0;
+        border: 1px solid rgba(159, 216, 204, 0.16);
+        background:
+          linear-gradient(180deg, rgba(28, 44, 42, 0.5), rgba(6, 10, 12, 0.9) 74%),
+          radial-gradient(ellipse at 50% 92%, rgba(96, 150, 140, 0.16), transparent 62%);
+        overflow: hidden;
+      }
+      .floor-line {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: rgba(159, 216, 204, 0.18);
+      }
+      .figure {
+        position: absolute;
+        left: 50%;
+        bottom: 84px;
+        width: 132px;
+        margin-left: -66px;
+        height: 340px;
+        background: linear-gradient(180deg, rgba(2, 4, 5, 0.96), rgba(10, 18, 18, 0.86));
+        border-radius: 64px 64px 10px 10px;
+        filter: blur(0.6px);
+        opacity: 0;
+      }
+      .figure-head {
+        position: absolute;
+        left: 50%;
+        top: -56px;
+        width: 84px;
+        height: 84px;
+        margin-left: -42px;
+        border-radius: 50%;
+        background: rgba(2, 4, 5, 0.98);
+      }
+      .door {
+        position: absolute;
+        left: 50%;
+        bottom: 84px;
+        width: 300px;
+        height: 430px;
+        margin-left: -150px;
+        border: 1px solid rgba(159, 216, 204, 0.22);
+        background: linear-gradient(180deg, rgba(12, 20, 22, 0.9), rgba(2, 5, 6, 0.98));
+        opacity: 0;
+      }
+      .light-shaft {
+        position: absolute;
+        left: 50%;
+        top: 0;
+        width: 460px;
+        height: 100%;
+        margin-left: -230px;
+        background: linear-gradient(180deg, rgba(150, 220, 205, 0.1), transparent 78%);
+        opacity: 0;
+      }
+
+      /* ---------- 字幕条 ---------- */
+      .caption {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 168px;
+        text-align: center;
+        font-size: 34px;
+        letter-spacing: 0.2em;
+        color: #e8f5f1;
+        text-shadow: 0 0 18px rgba(120, 220, 200, 0.5), 2px 0 0 rgba(255, 60, 60, 0.28);
+        opacity: 0;
+      }
+      .caption .bar {
+        display: inline-block;
+        padding: 10px 26px;
+        background: rgba(0, 0, 0, 0.62);
+        border: 1px solid rgba(159, 216, 204, 0.28);
+      }
+      .caption.warn .bar {
+        color: #ffb4a8;
+        border-color: rgba(255, 90, 74, 0.5);
+        text-shadow: 0 0 18px rgba(255, 90, 74, 0.55), 2px 0 0 rgba(255, 60, 60, 0.3);
+      }
+
+      /* ---------- 中央大字 ---------- */
+      .big {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        text-align: center;
+        font-size: 96px;
+        letter-spacing: 0.26em;
+        color: #eaf7f3;
+        text-shadow: 0 0 30px rgba(120, 220, 200, 0.45), 3px 0 0 rgba(255, 60, 60, 0.22);
+        opacity: 0;
+      }
+      .sub-line {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 50%;
+        margin-top: 96px;
+        text-align: center;
+        font-size: 28px;
+        letter-spacing: 0.3em;
+        color: #86a8a0;
+        opacity: 0;
+      }
+
+      /* ---------- 信号丢失 ---------- */
+      .bars {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+      }
+      .bar {
+        position: absolute;
+        left: 0;
+        right: 0;
+        background: linear-gradient(90deg,
+          rgba(159, 216, 204, 0.0),
+          rgba(159, 216, 204, 0.30),
+          rgba(120, 200, 190, 0.10),
+          rgba(159, 216, 204, 0.22),
+          rgba(159, 216, 204, 0.0));
+      }
+
+      /* ---------- 结尾 ---------- */
+      .endmark {
+        position: absolute;
+        inset: 0;
+        background: #000;
+        opacity: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .endmark span {
+        font-size: 26px;
+        letter-spacing: 0.42em;
+        color: #55706a;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-width="1920"
+      data-height="1080"
+      data-duration="56"
+    >
+      <!-- ================= S1 静止的走廊 (0-14) ================= -->
+      <section id="s1" class="scene">
+        <div class="stage">
+          <div class="room">
+            <div class="floor-line" style="top: 62%;"></div>
+            <div class="light-shaft" id="s1-shaft"></div>
+            <div class="door" id="s1-door"></div>
+            <div class="figure" id="s1-figure"><div class="figure-head"></div></div>
+          </div>
+        </div>
+        <div class="caption" id="s1-cap">
+          <span class="bar">CAM-04 / 通道 B / 03:14</span>
+        </div>
+      </section>
+
+      <!-- ================= S2 它在那里 (14-28) ================= -->
+      <section id="s2" class="scene">
+        <div class="stage">
+          <div class="room">
+            <div class="floor-line" style="top: 62%;"></div>
+            <div class="light-shaft" id="s2-shaft"></div>
+            <div class="door" id="s2-door"></div>
+            <div class="figure" id="s2-figure"><div class="figure-head"></div></div>
+          </div>
+        </div>
+        <div class="caption" id="s2-cap">
+          <span class="bar">画面里的人数 / 与实际不符</span>
+        </div>
+      </section>
+
+      <!-- ================= S3 信号丢失 (28-42) ================= -->
+      <section id="s3" class="scene">
+        <div class="bars" id="s3-bars"></div>
+        <div class="big" id="s3-big">没有信号</div>
+        <div class="sub-line" id="s3-sub">NO CARRIER / RETRYING</div>
+        <div class="caption warn" id="s3-cap">
+          <span class="bar">检测到未知音频源</span>
+        </div>
+      </section>
+
+      <!-- ================= S4 回放键 (42-56) ================= -->
+      <section id="s4" class="scene">
+        <div class="big" id="s4-big">它还在录</div>
+        <div class="sub-line" id="s4-sub">RECORDING / 无人操作</div>
+      </section>
+
+      <!-- ---------- 全局层 ---------- -->
+      <div class="grain" id="grain"></div>
+      <div class="scanlines"></div>
+      <div class="sweep" id="sweep"></div>
+
+      <div class="corner c-tl"></div>
+      <div class="corner c-tr"></div>
+      <div class="corner c-bl"></div>
+      <div class="corner c-br"></div>
+
+      <div class="hud" id="hud-tc">03:14:07</div>
+      <div class="hud" id="hud-cam">CAM-04 · 720P · NO AUDIO</div>
+      <div class="hud" id="hud-rec"><span class="dot" id="rec-dot"></span>REC</div>
+      <div class="hud" id="hud-src">SRC: UNKNOWN</div>
+
+      <div class="vignette"></div>
+      <div class="blackout" id="blackout"></div>
+      <div class="endmark" id="endmark"><span>END OF FILE</span></div>
+    </div>
+
+    <script>
+      (function () {
+        // ---------- 生成信号丢失的横条 ----------
+        var barBox = document.getElementById("s3-bars");
+        var bars = [];
+        for (var i = 0; i < 26; i++) {
+          var b = document.createElement("div");
+          b.className = "bar";
+          b.style.top = (i * 3.85) + "%";
+          b.style.height = (0.8 + (i % 5) * 0.55) + "px";
+          barBox.appendChild(b);
+          bars.push(b);
+        }
+
+        // ---------- 时间码走字 ----------
+        var tcEl = document.getElementById("hud-tc");
+        var tcObj = { frames: 0 };
+        function fmtTc(frames) {
+          var totalSec = 3 * 3600 + 14 * 60 + 7 + Math.floor(frames / 25);
+          var hh = Math.floor(totalSec / 3600) % 24;
+          var mm = Math.floor(totalSec / 60) % 60;
+          var ss = totalSec % 60;
+          var ff = frames % 25;
+          function p2(n) { return (n < 10 ? "0" : "") + n; }
+          return p2(hh) + ":" + p2(mm) + ":" + p2(ss) + ":" + p2(ff);
+        }
+
+        var tl = gsap.timeline({ paused: true });
+
+        // ===== 全局：时间码 56 秒匀速推进（不循环，一次到底）=====
+        tl.fromTo(tcObj, { frames: 0 }, {
+          frames: 1399,
+          duration: 56,
+          ease: "none",
+          onUpdate: function () { tcEl.textContent = fmtTc(Math.round(tcObj.frames)); }
+        }, 0);
+
+        // ===== 全局：横向扫光缓慢下移（限次）=====
+        tl.fromTo("#sweep",
+          { top: "-18%", autoAlpha: 0.9 },
+          { top: "104%", duration: 9.5, ease: "none", repeat: 5 }, 0);
+
+        // ===== 全局：噪点漂移（限次）=====
+        tl.fromTo("#grain",
+          { x: 0, y: 0 },
+          { x: -26, y: 18, duration: 0.28, ease: "none", repeat: 199, yoyo: true }, 0);
+
+        // ===== 全局：REC 红点闪（限次，56/1.2 ≈ 46 组）=====
+        tl.to("#rec-dot",
+          { autoAlpha: 0.15, duration: 0.6, ease: "none", repeat: 45, yoyo: true }, 0);
+
+        // ===== 全局：几个单帧黑场跳切 =====
+        var blinks = [7.4, 13.2, 21.6, 27.9, 33.1, 38.7, 44.3, 50.8, 54.2];
+        for (var k = 0; k < blinks.length; k++) {
+          tl.to("#blackout", { autoAlpha: 1, duration: 0.04, ease: "none" }, blinks[k]);
+          tl.to("#blackout", { autoAlpha: 0, duration: 0.06, ease: "none" }, blinks[k] + 0.08);
+        }
+
+        // ===================== S1: 0 - 14 =====================
+        // 门与光慢慢显出来
+        tl.fromTo("#s1-door",
+          { autoAlpha: 0 },
+          { autoAlpha: 1, duration: 3.2, ease: "sine.out" }, 0.6);
+        tl.fromTo("#s1-shaft",
+          { autoAlpha: 0 },
+          { autoAlpha: 1, duration: 3.6, ease: "sine.out" }, 1.0);
+        // 人形极慢浮现（这是恐怖的点：不是出现，是"已经在"）
+        tl.fromTo("#s1-figure",
+          { autoAlpha: 0, scaleY: 1.04 },
+          { autoAlpha: 0.92, scaleY: 1, duration: 8.4, ease: "sine.inOut" }, 2.2);
+        // 字幕条出现
+        tl.fromTo("#s1-cap",
+          { autoAlpha: 0, y: 14 },
+          { autoAlpha: 1, y: 0, duration: 1.1, ease: "power2.out" }, 2.6);
+        tl.to("#s1-cap", { autoAlpha: 0, duration: 1.2, ease: "sine.in" }, 10.6);
+
+        // ===================== S2: 14 - 28 =====================
+        tl.fromTo("#s2-door",
+          { autoAlpha: 0 },
+          { autoAlpha: 1, duration: 2.4, ease: "sine.out" }, 14.0);
+        tl.fromTo("#s2-shaft",
+          { autoAlpha: 0 },
+          { autoAlpha: 1, duration: 2.8, ease: "sine.out" }, 14.2);
+        // 人形已经站着，只是更近一点
+        tl.fromTo("#s2-figure",
+          { autoAlpha: 0.92, scaleY: 1, scaleX: 1 },
+          { autoAlpha: 1, scaleY: 1.03, scaleX: 0.97, duration: 9.0, ease: "sine.inOut" }, 14.2);
+        // 极缓慢地"长大"一点点——比例失调
+        tl.to("#s2-figure",
+          { height: 372, duration: 11.0, ease: "sine.inOut" }, 14.6);
+        // 字幕
+        tl.fromTo("#s2-cap",
+          { autoAlpha: 0, y: 14 },
+          { autoAlpha: 1, y: 0, duration: 1.1, ease: "power2.out" }, 16.4);
+        // 轻微的横向错位抖动（限次，几次就停）
+        tl.to("#s2 .room",
+          { x: 3, duration: 0.07, ease: "none", repeat: 3, yoyo: true }, 19.4);
+        tl.to("#s2 .room",
+          { x: -5, duration: 0.05, ease: "none", repeat: 2, yoyo: true }, 23.1);
+        tl.to("#s2-cap", { autoAlpha: 0, duration: 1.2, ease: "sine.in" }, 25.4);
+
+        // ===================== S3: 28 - 42 =====================
+        // 信号条铺满
+        tl.fromTo("#s3-bars",
+          { autoAlpha: 0 },
+          { autoAlpha: 1, duration: 0.5, ease: "none" }, 28.0);
+        // 各条随机量地在纵向抖动
+        for (var j = 0; j < bars.length; j++) {
+          tl.fromTo(bars[j],
+            { y: 0, autoAlpha: 0.35 },
+            {
+              y: (j % 2 === 0 ? 1 : -1) * (6 + (j % 7) * 4),
+              autoAlpha: 0.85,
+              duration: 0.22 + (j % 5) * 0.09,
+              ease: "none",
+              repeat: 5,
+              yoyo: true
+            }, 28.2 + (j % 9) * 0.12);
+        }
+        tl.to("#s3-bars", { autoAlpha: 0.28, duration: 1.6, ease: "sine.inOut" }, 33.4);
+
+        // 中央大字
+        tl.fromTo("#s3-big",
+          { autoAlpha: 0, letterSpacing: "0.46em" },
+          { autoAlpha: 1, letterSpacing: "0.26em", duration: 1.5, ease: "power2.out" }, 29.4);
+        tl.fromTo("#s3-sub",
+          { autoAlpha: 0 },
+          { autoAlpha: 0.9, duration: 1.2, ease: "sine.out" }, 30.6);
+        // 闪烁两下
+        tl.to("#s3-big", { autoAlpha: 0.2, duration: 0.09, ease: "none" }, 32.2);
+        tl.to("#s3-big", { autoAlpha: 1, duration: 0.12, ease: "none" }, 32.36);
+        tl.to("#s3-sub", { autoAlpha: 0.25, duration: 0.1, ease: "none" }, 35.4);
+        tl.to("#s3-sub", { autoAlpha: 0.9, duration: 0.14, ease: "none" }, 35.6);
+
+        // 警告字幕
+        tl.fromTo("#s3-cap",
+          { autoAlpha: 0, y: 14 },
+          { autoAlpha: 1, y: 0, duration: 1.0, ease: "power2.out" }, 34.2);
+        tl.to("#s3-cap", { autoAlpha: 0, duration: 1.1, ease: "sine.in" }, 39.6);
+        // 收束
+        tl.to("#s3-big", { autoAlpha: 0, duration: 1.2, ease: "sine.in" }, 39.8);
+        tl.to("#s3-sub", { autoAlpha: 0, duration: 1.0, ease: "sine.in" }, 39.9);
+
+        // ===================== S4: 42 - 56 =====================
+        tl.fromTo("#s4-big",
+          { autoAlpha: 0, letterSpacing: "0.44em" },
+          { autoAlpha: 1, letterSpacing: "0.3em", duration: 2.0, ease: "power1.out" }, 42.6);
+        tl.fromTo("#s4-sub",
+          { autoAlpha: 0 },
+          { autoAlpha: 0.85, duration: 1.4, ease: "sine.out" }, 44.4);
+        // 缓慢的呼吸式明暗
+        tl.to("#s4-big", { autoAlpha: 0.55, duration: 2.4, ease: "sine.inOut", yoyo: true, repeat: 2 }, 45.2);
+        tl.to("#s4-sub", { autoAlpha: 0.35, duration: 1.8, ease: "sine.inOut", yoyo: true, repeat: 3 }, 45.6);
+
+        // 结尾：黑场 + END OF FILE
+        tl.to("#s4-big", { autoAlpha: 0, duration: 1.4, ease: "sine.in" }, 53.0);
+        tl.to("#s4-sub", { autoAlpha: 0, duration: 1.2, ease: "sine.in" }, 53.0);
+        tl.to("#endmark", { autoAlpha: 1, duration: 1.2, ease: "sine.inOut" }, 54.2);
+        tl.to("#endmark", { autoAlpha: 0, duration: 0.9, ease: "sine.in" }, 55.1);
+
+        window.__timelines["main"] = tl;
+      })();
+    </script>
+  </body>
+</html>
