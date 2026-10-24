@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>愤怒为什么发生，又为什么后悔</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 100%; height: 100%; overflow: hidden; background: #0e1116; }
+      body { font-family: system-ui, -apple-system, "Noto Sans SC", sans-serif; }
+
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        background: #0e1116;
+        overflow: hidden;
+        color: #e8edf5;
+      }
+
+      .scene {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      .kicker {
+        position: absolute;
+        left: 80px;
+        top: 64px;
+        font-size: 20px;
+        letter-spacing: 0.18em;
+        color: #63a4ff;
+        font-weight: 600;
+        text-transform: uppercase;
+      }
+
+      .text-col {
+        position: absolute;
+        left: 80px;
+        top: 50%;
+        width: 800px;
+        transform: translateY(-50%);
+      }
+
+      .ln { display: block; }
+
+      .title {
+        font-size: 68px;
+        line-height: 1.22;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        color: #f2f6fc;
+      }
+
+      .sub {
+        margin-top: 28px;
+        font-size: 30px;
+        line-height: 1.62;
+        color: #93a3b8;
+        font-weight: 400;
+        max-width: 720px;
+      }
+
+      .quote {
+        font-size: 64px;
+        line-height: 1.3;
+        font-weight: 700;
+        color: #f2f6fc;
+      }
+
+      .accent { color: #63a4ff; }
+      .warn { color: #ff7a59; }
+
+      /* ---------- 图形区 ---------- */
+      .gfx {
+        position: absolute;
+        right: 96px;
+        top: 50%;
+        width: 780px;
+        height: 780px;
+        transform: translateY(-50%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* S1 神经脉冲网络 */
+      .net-node {
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #63a4ff;
+        box-shadow: 0 0 18px rgba(99, 164, 255, 0.75);
+      }
+      .net-link {
+        position: absolute;
+        height: 2px;
+        background: linear-gradient(90deg, rgba(99,164,255,0.75), rgba(99,164,255,0.06));
+        transform-origin: left center;
+      }
+
+      /* S2 压力容器 / 波形 */
+      .gauge-wrap {
+        position: relative;
+        width: 620px;
+        height: 620px;
+      }
+      .gauge-ring {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        border: 3px solid rgba(99, 164, 255, 0.16);
+      }
+      .gauge-fill {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        border: 3px solid transparent;
+        border-top-color: #ff7a59;
+        border-right-color: #ff7a59;
+      }
+      .gauge-core {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 260px;
+        height: 260px;
+        margin-left: -130px;
+        margin-top: -130px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(255,122,89,0.36) 0%, rgba(255,122,89,0.05) 62%, transparent 72%);
+      }
+      .wave-bar {
+        position: absolute;
+        bottom: 0;
+        width: 14px;
+        border-radius: 7px;
+        background: #ff7a59;
+        opacity: 0.85;
+      }
+
+      /* S3 时间轴 / 后悔 */
+      .tl-axis {
+        position: absolute;
+        left: 40px;
+        right: 40px;
+        top: 50%;
+        height: 2px;
+        background: rgba(147, 163, 184, 0.28);
+      }
+      .tl-dot {
+        position: absolute;
+        top: 50%;
+        width: 24px;
+        height: 24px;
+        margin-top: -12px;
+        margin-left: -12px;
+        border-radius: 50%;
+        background: #0e1116;
+        border: 3px solid #63a4ff;
+      }
+      .tl-gap {
+        position: absolute;
+        top: 50%;
+        height: 2px;
+        margin-top: -1px;
+        background: rgba(255, 122, 89, 0.85);
+      }
+      .tl-label {
+        position: absolute;
+        font-size: 22px;
+        color: #93a3b8;
+        transform: translateX(-50%);
+        text-align: center;
+        white-space: nowrap;
+      }
+
+      /* S4 呼吸 / 秩序 */
+      .breath {
+        position: absolute;
+        border-radius: 50%;
+        border: 2px solid rgba(99, 164, 255, 0.5);
+      }
+      .breath-core {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 200px;
+        height: 200px;
+        margin-left: -100px;
+        margin-top: -100px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(99,164,255,0.3), transparent 70%);
+      }
+      .prompt-box {
+        position: absolute;
+        width: 460px;
+        padding: 28px 32px;
+        border: 1px solid rgba(99, 164, 255, 0.34);
+        border-radius: 16px;
+        background: rgba(99, 164, 255, 0.07);
+        font-size: 26px;
+        line-height: 1.55;
+        color: #cfe0f7;
+      }
+
+      /* 背景氛围 */
+      .grid-bg {
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(99, 164, 255, 0.045) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(99, 164, 255, 0.045) 1px, transparent 1px);
+        background-size: 72px 72px;
+        opacity: 0.75;
+      }
+      .vignette {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse at 50% 50%, transparent 34%, rgba(4, 6, 10, 0.86) 100%);
+      }
+      .glow-a {
+        position: absolute;
+        left: -180px;
+        top: -140px;
+        width: 900px;
+        height: 900px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(99,164,255,0.10), transparent 66%);
+      }
+      .glow-b {
+        position: absolute;
+        right: -220px;
+        bottom: -220px;
+        width: 980px;
+        height: 980px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(255,122,89,0.09), transparent 68%);
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-width="1920"
+      data-height="1080"
+      data-duration="44"
+    >
+      <!-- 常驻氛围层 -->
+      <div class="grid-bg"></div>
+      <div class="glow-a"></div>
+      <div class="glow-b"></div>
+
+      <!-- ================= S1 愤怒的起点 ================= -->
+      <section id="s1" class="clip scene" data-start="0" data-duration="11">
+        <div class="kicker">01 · 触发</div>
+
+        <div class="gfx" id="s1-gfx">
+          <!-- 节点由脚本生成 -->
+        </div>
+
+        <div class="text-col">
+          <h1 class="title" id="s1-title"><span class="ln">愤怒，</span><span class="ln">从来不是</span><span class="ln">凭空出现的</span></h1>
+          <p class="sub" id="s1-sub">
+            <span class="ln">它在你察觉之前就已经启动：</span>
+            <span class="ln">某个边界被踩过，</span>
+            <span class="ln">大脑判定「这不公平」。</span>
+          </p>
+        </div>
+      </section>
+
+      <!-- ================= S2 升级 ================= -->
+      <section id="s2" class="clip scene" data-start="11" data-duration="12">
+        <div class="kicker">02 · 升级</div>
+
+        <div class="gfx" id="s2-gfx">
+          <div class="gauge-wrap">
+            <div class="gauge-ring"></div>
+            <div class="gauge-fill" id="s2-fill"></div>
+            <div class="gauge-core" id="s2-core"></div>
+            <div id="s2-bars"></div>
+          </div>
+        </div>
+
+        <div class="text-col">
+          <h2 class="title" id="s2-title"><span class="ln">身体先于理智</span><span class="ln">做出反应</span></h2>
+          <p class="sub" id="s2-sub">
+            <span class="ln">肾上腺素在 0.2 秒内到达，</span>
+            <span class="ln">心跳加快、肌肉收紧，</span>
+            <span class="ln">血液从消化道涌向四肢。</span>
+          </p>
+        </div>
+      </section>
+
+      <!-- ================= S3 后悔 ================= -->
+      <section id="s3" class="clip scene" data-start="23" data-duration="12">
+        <div class="kicker">03 · 反转</div>
+
+        <div class="gfx" id="s3-gfx">
+          <div class="tl-axis"></div>
+          <!-- 由脚本注入 -->
+        </div>
+
+        <div class="text-col">
+          <h2 class="title" id="s3-title"><span class="ln">后悔来得这么晚</span><span class="ln">是因为它<span class="warn">太慢</span></span></h2>
+          <p class="sub" id="s3-sub">
+            <span class="ln">杏仁核 12 毫秒点火，</span>
+            <span class="ln">而前额叶需要 6 秒以上</span>
+            <span class="ln">才能真正接管判断。</span>
+          </p>
+        </div>
+      </section>
+
+      <!-- ================= S4 解法 ================= -->
+      <section id="s4" class="clip scene" data-start="35" data-duration="9">
+        <div class="kicker">04 · 出路</div>
+
+        <div class="gfx" id="s4-gfx">
+          <div class="breath" id="s4-b3"></div>
+          <div class="breath" id="s4-b2"></div>
+          <div class="breath" id="s4-b1"></div>
+          <div class="breath-core" id="s4-core"></div>
+          <div class="prompt-box" id="s4-prompt"><span class="ln">在说话之前，</span><span class="ln">给自己 6 秒。</span></div>
+        </div>
+
+        <div class="text-col">
+          <h2 class="quote" id="s4-title"><span class="ln">愤怒提醒你</span><span class="ln"><span class="accent">有东西被侵犯</span></span><span class="ln">但它不该替你说话</span></h2>
+        </div>
+      </section>
+
+      <div class="vignette"></div>
+    </div>
+
+    <script>
+      (function () {
+        // ---------- S1 网络节点生成 ----------
+        var g1 = document.getElementById("s1-gfx");
+        var nodes = [
+          [-260, -150], [-90, -240], [110, -190], [250, -40],
+          [-250, 60], [-60, -20], [130, 90], [280, 190],
+          [-160, 220], [40, 180], [200, 280], [0, 40]
+        ];
+        var links = [
+          [0, 1], [1, 2], [2, 3], [0, 5], [5, 6], [6, 3],
+          [4, 5], [4, 8], [8, 9], [9, 5], [9, 10], [10, 7],
+          [6, 9], [11, 5], [11, 6], [11, 9], [11, 2]
+        ];
+        var s1Nodes = [];
+        var s1Links = [];
+
+        nodes.forEach(function (p, i) {
+          var n = document.createElement("div");
+          n.className = "net-node";
+          n.style.left = 390 + p[0] + "px";
+          n.style.top = 390 + p[1] + "px";
+          g1.appendChild(n);
+          s1Nodes.push(n);
+        });
+
+        links.forEach(function (pair, i) {
+          var a = nodes[pair[0]];
+          var b = nodes[pair[1]];
+          var dx = b[0] - a[0];
+          var dy = b[1] - a[1];
+          var len = Math.sqrt(dx * dx + dy * dy);
+          var ang = Math.atan2(dy, dx) * 180 / Math.PI;
+          var l = document.createElement("div");
+          l.className = "net-link";
+          l.style.left = 390 + a[0] + "px";
+          l.style.top = 390 + a[1] + "px";
+          l.style.width = len + "px";
+          l.style.transform = "rotate(" + ang + "deg)";
+          g1.appendChild(l);
+          s1Links.push(l);
+        });
+
+        // ---------- S2 波形柱 ----------
+        var bars = document.getElementById("s2-bars");
+        var s2Bars = [];
+        var barCount = 26;
+        for (var i = 0; i < barCount; i++) {
+          var b = document.createElement("div");
+          b.className = "wave-bar";
+          var h = 26 + Math.abs(Math.sin(i * 0.7)) * 150;
+          b.style.left = 20 + i * 22 + "px";
+          b.style.height = h + "px";
+          b.style.bottom = "0px";
+          bars.appendChild(b);
+          s2Bars.push(b);
+        }
+        // 波形柱定位到圆环底部区域
+        bars.style.position = "absolute";
+        bars.style.left = "0px";
+        bars.style.bottom = "-150px";
+        bars.style.width = "620px";
+        bars.style.height = "220px";
+        bars.querySelectorAll(".wave-bar").forEach(function (el) {
+          el.style.bottom = "0px";
+        });
+
+        // ---------- S3 时间轴 ----------
+        var g3 = document.getElementById("s3-gfx");
+        var dots = [
+          { x: 90, label: "刺激", t: 0 },
+          { x: 300, label: "杏仁核起火", t: 0.012 },
+          { x: 520, label: "话已出口", t: 1.2 },
+          { x: 690, label: "前额叶接管", t: 6.0 }
+        ];
+        var s3Dots = [];
+        var s3Gap = document.createElement("div");
+        s3Gap.className = "tl-gap";
+        s3Gap.style.left = "520px";
+        s3Gap.style.width = "170px";
+        g3.appendChild(s3Gap);
+
+        dots.forEach(function (d) {
+          var dot = document.createElement("div");
+          dot.className = "tl-dot";
+          dot.style.left = d.x + "px";
+          g3.appendChild(dot);
+          s3Dots.push(dot);
+
+          var lab = document.createElement("div");
+          lab.className = "tl-label";
+          lab.textContent = d.label;
+          lab.style.left = d.x + "px";
+          lab.style.top = "calc(50% + 34px)";
+          g3.appendChild(lab);
+        });
+
+        var s3Labels = g3.querySelectorAll(".tl-label");
+
+        // ---------- 时间线 ----------
+        var tl = gsap.timeline({ paused: true });
+
+        // ===== S1 (0 - 11) =====
+        tl.fromTo("#s1-title",
+          { y: 34, autoAlpha: 0 },
+          { y: 0, autoAlpha: 1, duration: 0.85, ease: "power2.out" }, 0.35);
+
+        tl.fromTo("#s1-sub",
+          { y: 26, autoAlpha: 0 },
+          { y: 0, autoAlpha: 1, duration: 0.8, ease: "power2.out" }, 1.05);
+
+        // 连线渐进点亮
+        tl.fromTo(s1Links,
+          { scaleX: 0, autoAlpha: 0 },
+          { scaleX: 1, autoAlpha: 1, duration: 0.42, stagger: 0.055, ease: "power1.out" }, 0.6);
+
+        tl.fromTo(s1Nodes,
+          { scale: 0, autoAlpha: 0 },
+          { scale: 1, autoAlpha: 1, duration: 0.5, stagger: 0.05, ease: "back.out(2)" }, 0.85);
+
+        // 后续脉冲
+        tl.to(s1Nodes, {
+          scale: 1.28,
+          autoAlpha: 0.72,
+          duration: 0.42,
+          stagger: { each: 0.06, repeat: 1, yoyo: true },
+          ease: "sine.inOut"
+        }, 5.2);
+
+        // ===== S2 (11 - 23) =====
+        tl.fromTo("#s2-title",
+          { y: 34, autoAlpha: 0 },
+          { y: 0, autoAlpha: 1, duration: 0.85, ease: "power2.out" }, 11.3);
+
+        tl.fromTo("#s2-sub",
+          { y: 26, autoAlpha: 0 },
+          { y: 0, autoAlpha: 1, duration: 0.8, ease: "power2.out" }, 12.0);
+
+        tl.fromTo(s2Bars,
+          { scaleY: 0, autoAlpha: 0 },
+          { scaleY: 1, autoAlpha: 0.85, duration: 0.55, stagger: 0.022, ease: "power2.out" }, 11.6);
+
+        tl.fromTo("#s2-core",
+          { scale: 0.4, autoAlpha: 0 },
+          { scale: 1, autoAlpha: 1, duration: 1.0, ease: "power2.out" }, 12.4);
+
+        // 圆环压力累积
+        tl.fromTo("#s2-fill",
+          { rotation: 0, autoAlpha: 0.35 },
+          { rotation: 300, autoAlpha: 1, duration: 7.0, ease: "power1.in" }, 13.0);
+
+        tl.to("#s2-core",
+          { scale: 1.16, duration: 1.1, repeat: 3, yoyo: true, ease: "sine.inOut" }, 13.6);
+
+        // ===== S3 (23 - 35) =====
+        tl.fromTo("#s3-title",
+          { y: 34, autoAlpha: 0 },
+          { y: 0, autoAlpha: 1, duration: 0.85, ease: "power2.out" }, 23.3);
+
+        tl.fromTo("#s3-sub",
+          { y: 26, autoAlpha: 0 },
+          { y: 0, autoAlpha: 1, duration: 0.8, ease: "power2.out" }, 24.0);
+
+        tl.fromTo(s3Dots,
+          { scale: 0, autoAlpha: 0 },
+          { scale: 1, autoAlpha: 1, duration: 0.5, stagger: 1.15, ease: "back.out(2.2)" }, 23.8);
+
+        tl.fromTo(s3Labels,
+          { y: 14, autoAlpha: 0 },
+          { y: 0, autoAlpha: 1, duration: 0.55, stagger: 1.15, ease: "power2.out" }, 24.05);
+
+        // 那段「错位的 6 秒」
+        tl.fromTo(s3Gap,
+          { scaleX: 0, autoAlpha: 0 },
+          { scaleX: 1, autoAlpha: 1, duration: 1.1, ease: "power2.inOut" }, 28.4);
+
+        // ===== S4 (35 - 44) =====
+        tl.fromTo("#s4-title",
+          { y: 34, autoAlpha: 0 },
+          { y: 0, autoAlpha: 1, duration: 0.9, ease: "power2.out" }, 35.3);
+
+        tl.fromTo("#s4-core",
+          { scale: 0.5, autoAlpha: 0 },
+          { scale: 1, autoAlpha: 1, duration: 1.1, ease: "power2.out" }, 35.6);
+
+        // 三次呼吸：扩张 → 收缩
+        var breathEls = ["#s4-b1", "#s4-b2", "#s4-b3"];
+        var breathSize = [300, 420, 540];
+        breathEls.forEach(function (sel, i) {
+          var el = document.querySelector(sel);
+          var size = breathSize[i];
+          el.style.width = size + "px";
+          el.style.height = size + "px";
+          el.style.left = "50%";
+          el.style.top = "50%";
+          el.style.marginLeft = -size / 2 + "px";
+          el.style.marginTop = -size / 2 + "px";
+        });
+
+        tl.fromTo("#s4-b1",
+          { scale: 0.72, autoAlpha: 0 },
+          { scale: 1, autoAlpha: 0.75, duration: 1.4, ease: "sine.inOut" }, 35.9);
+
+        tl.fromTo("#s4-b2",
+          { scale: 0.72, autoAlpha: 0 },
+          { scale: 1, autoAlpha: 0.55, duration: 1.4, ease: "sine.inOut" }, 36.5);
+
+        tl.fromTo("#s4-b3",
+          { scale: 0.72, autoAlpha: 0 },
+          { scale: 1, autoAlpha: 0.4, duration: 1.4, ease: "sine.inOut" }, 37.1);
+
+        tl.fromTo("#s4-prompt",
+          { y: 20, autoAlpha: 0, scale: 0.94 },
+          { y: 0, autoAlpha: 1, scale: 1, duration: 0.9, ease: "power2.out" }, 38.2);
+
+        // 结尾整体轻微呼吸
+        tl.to(".breath", {
+          scale: 1.07,
+          duration: 1.5,
+          repeat: 2,
+          yoyo: true,
+          stagger: 0.14,
+          ease: "sine.inOut"
+        }, 39.4);
+
+        window.__timelines["main"] = tl;
+      })();
+    </script>
+  </body>
+</html>

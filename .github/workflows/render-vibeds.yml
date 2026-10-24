@@ -1,0 +1,67 @@
+name: render-vibeds
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "vibeds/**"
+      - ".github/workflows/render.yml"
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      HYPERFRAMES_TELEMETRY: "0"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Setup FFmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg
+          ffmpeg -version | head -1
+
+      - name: Install Chromium deps
+        run: |
+          sudo apt-get install -y --no-install-recommends \
+            libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 \
+            libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 \
+            libgbm1 libasound2t64 libpango-1.0-0 libcairo2
+
+      - name: Install hyperframes
+        working-directory: vibeds
+        run: |
+          node -v
+          npm i -D hyperframes --no-audit --no-fund
+
+      - name: Lint
+        working-directory: vibeds
+        run: npx hyperframes lint || true
+
+      - name: Render
+        working-directory: vibeds
+        run: |
+          npx hyperframes render 2>&1 | tee /tmp/render.log
+          echo "--- mp4 found ---"
+          find . .. -maxdepth 3 -name "*.mp4" -not -path "*/node_modules/*" 2>/dev/null || true
+
+      - name: Collect output
+        run: |
+          mkdir -p out
+          find . -name "*.mp4" -not -path "./node_modules/*" -exec cp {} out/ \; 2>/dev/null || true
+          ls -lah out
+
+      - name: Upload MP4
+        uses: actions/upload-artifact@v4
+        with:
+          name: anger-regret-video
+          path: out/**/*.mp4
+          if-no-files-found: warn
