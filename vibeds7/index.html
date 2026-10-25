@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>四个孩子</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { width:1920px; height:1080px; overflow:hidden; background:#07080a; }
+  #stage { position:absolute; inset:0; overflow:hidden; background:#07080a;
+    font-family:"PingFang SC","Noto Sans CJK SC","Source Han Sans SC","Microsoft YaHei",sans-serif; }
+
+  /* four horizontal bands, one life each */
+  .band { position:absolute; left:0; width:1920px; height:262px; overflow:hidden; }
+  #b1 { top:0px;    }
+  #b2 { top:268px;  }
+  #b3 { top:536px;  }
+  #b4 { top:804px;  }
+
+  /* separation lines between lives */
+  .seam { position:absolute; left:0; width:1920px; height:6px; background:#000; z-index:50; }
+  .seam.glow { box-shadow:0 0 24px 4px rgba(0,0,0,0.9); }
+
+  /* ---------- band 1: white house, warm ---------- */
+  #b1 { background:linear-gradient(180deg,#e8e2d6 0%,#ddd5c6 60%,#cfc6b4 100%); }
+  #b1 .floor { position:absolute; left:0; bottom:0; width:1920px; height:58px;
+    background:linear-gradient(180deg,#b8a58a 0%,#a08c6e 100%); }
+  #b1 .wall { position:absolute; left:0; top:0; width:1920px; height:210px;
+    background:linear-gradient(180deg,#efeade 0%,#e4dccd 100%); }
+  #b1 .light { position:absolute; left:900px; top:0; width:1100px; height:270px;
+    background:radial-gradient(ellipse 620px 210px at 60% 10%, rgba(255,240,200,0.55), rgba(255,240,200,0) 72%); }
+  #b1 .piano { position:absolute; left:120px; bottom:58px; width:300px; height:130px;
+    background:#2a2622; border-radius:4px; }
+  #b1 .piano .keys { position:absolute; left:8px; top:26px; width:284px; height:38px;
+    background:repeating-linear-gradient(90deg,#f4f1e8 0px,#f4f1e8 13px,#2a2622 13px,#2a2622 15px); }
+  #b1 .shelf { position:absolute; left:1180px; top:74px; width:360px; height:9px; background:#8d7a5f; }
+  #b1 .book { position:absolute; bottom:9px; width:22px; border-radius:1px; }
+  #b1 .rail { position:absolute; left:700px; top:150px; width:620px; height:7px;
+    background:linear-gradient(180deg,#cbbfa6,#9d8f74); border-radius:4px; }
+  #b1 .railp { position:absolute; top:157px; width:9px; height:52px; background:#b6a88c; }
+  #b1 .sun { position:absolute; left:1580px; top:26px; width:150px; height:150px; border-radius:50%;
+    background:radial-gradient(circle, rgba(255,232,176,0.95), rgba(255,232,176,0.10) 68%, rgba(255,232,176,0) 78%); }
+
+  /* ---------- band 2: old stairwell, cold green ---------- */
+  #b2 { background:linear-gradient(180deg,#232a28 0%,#1a201e 70%,#141917 100%); }
+  #b2 .wall { position:absolute; left:0; top:0; width:1920px; height:200px;
+    background:repeating-linear-gradient(180deg,#232a28 0px,#232a28 58px,#1e2523 58px,#1e2523 60px); }
+  #b2 .stair { position:absolute; left:820px; bottom:0; width:1100px; height:262px;
+    background:linear-gradient(135deg,#1b2321 0%,#121816 100%); }
+  #b2 .step { position:absolute; background:#2b3330; }
+  #b2 .pipe { position:absolute; left:0; top:34px; width:1920px; height:8px; background:#2e3733; }
+  #b2 .meter { position:absolute; left:1420px; top:60px; width:74px; height:96px;
+    background:#39423d; border:2px solid #2a322e; border-radius:3px; }
+  #b2 .bulb { position:absolute; left:600px; top:2px; width:16px; height:16px; border-radius:50%;
+    background:#ffe9a8; box-shadow:0 0 26px 8px rgba(255,220,140,0.45); }
+  #b2 .cone { position:absolute; left:480px; top:14px; width:260px; height:250px;
+    background:radial-gradient(ellipse 130px 240px at 50% 0%, rgba(255,225,150,0.22), rgba(255,225,150,0) 70%); }
+  #b2 .door { position:absolute; left:250px; bottom:0; width:180px; height:200px;
+    background:#161c1a; border:3px solid #2b3330; }
+
+  /* ---------- band 3: tin shack, grey blue ---------- */
+  #b3 { background:linear-gradient(180deg,#2b3038 0%,#242830 70%,#1d2127 100%); }
+  #b3 .sheet { position:absolute; top:0; width:150px; height:262px;
+    background:linear-gradient(90deg,#4a505a,#3a3f47); }
+  #b3 .rib { position:absolute; top:0; width:2px; height:262px; background:rgba(255,255,255,0.05); }
+  #b3 .tarp { position:absolute; left:-20px; top:-18px; width:760px; height:120px;
+    background:linear-gradient(180deg, rgba(120,140,150,0.30), rgba(120,140,150,0.06));
+    filter:blur(1px); }
+  #b3 .ground { position:absolute; left:0; bottom:0; width:1920px; height:56px; background:#171b20; }
+  #b3 .puddle { position:absolute; left:0; bottom:10px; width:1920px; height:40px;
+    background:radial-gradient(ellipse 900px 26px at 40% 60%, rgba(150,175,190,0.10), rgba(0,0,0,0) 72%); }
+  #b3 .crate { position:absolute; bottom:56px; width:120px; height:92px;
+    background:#3a3228; border-radius:2px; }
+  #b3 .crate .tape { position:absolute; left:0; top:34px; width:120px; height:8px; background:rgba(200,180,140,0.20); }
+  #b3 .cord { position:absolute; left:900px; top:0; width:3px; height:96px; background:#4a5560; }
+
+  /* ---------- band 4: convenience store back door, magenta ---------- */
+  #b4 { background:linear-gradient(180deg,#1a1420 0%,#140f1c 70%,#0e0a16 100%); }
+  #b4 .back { position:absolute; left:0; top:0; width:1920px; height:262px;
+    background:linear-gradient(180deg,#1a1420,#120d1a); }
+  #b4 .neon { position:absolute; left:1180px; top:22px; width:420px; height:14px; border-radius:7px;
+    background:#ff4fa8; box-shadow:0 0 22px 6px rgba(255,79,168,0.55), 0 0 60px 16px rgba(255,79,168,0.20); }
+  #b4 .neon2 { position:absolute; left:1260px; top:52px; width:260px; height:9px; border-radius:5px;
+    background:#5fe0ff; box-shadow:0 0 18px 5px rgba(95,224,255,0.45); }
+  #b4 .shutter { position:absolute; left:120px; bottom:0; width:420px; height:212px;
+    background:repeating-linear-gradient(180deg,#2a2230 0px,#2a2230 13px,#221b28 13px,#221b28 15px); }
+  #b4 .shutter .lip { position:absolute; left:0; bottom:0; width:420px; height:14px; background:#141020; }
+  #b4 .asphalt { position:absolute; left:0; bottom:0; width:1920px; height:50px; background:#0f0b16; }
+  #b4 .spill { position:absolute; left:900px; bottom:40px; width:900px; height:110px;
+    background:radial-gradient(ellipse 420px 60px at 40% 60%, rgba(255,79,168,0.16), rgba(255,79,168,0) 72%); }
+  #b4 .box { position:absolute; bottom:50px; width:96px; height:74px; background:#2f2438; border-radius:2px; }
+
+  /* ---------- the children (stick figures) ---------- */
+  .kid { position:absolute; z-index:20; }
+  .kid .head { position:absolute; border-radius:50%; }
+  .kid .body { position:absolute; border-radius:3px; }
+  .kid .leg { position:absolute; border-radius:3px; transform-origin:50% 0; }
+  .kid .arm { position:absolute; border-radius:3px; transform-origin:50% 0; }
+  .kid .shadow { position:absolute; border-radius:50%; filter:blur(4px); }
+
+  /* ---------- subtitles ---------- */
+  #subs { position:absolute; left:0; bottom:0; width:1920px; z-index:80; }
+  #l1 { position:absolute; left:0; width:1920px; text-align:center; opacity:0;
+    font-size:52px; font-weight:700; letter-spacing:2px; color:#fff;
+    text-shadow:0 0 18px rgba(0,0,0,0.95), 0 3px 10px rgba(0,0,0,0.95), 0 0 42px rgba(0,0,0,0.8); }
+
+  /* ---------- grade ---------- */
+  #vignette { position:absolute; inset:0; z-index:70; pointer-events:none;
+    background:radial-gradient(ellipse 1300px 760px at 50% 50%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.55) 100%); }
+  #grain { position:absolute; inset:0; z-index:72; pointer-events:none; opacity:0.05; }
+  #black { position:absolute; inset:0; z-index:95; background:#000; opacity:1; }
+</style>
+</head>
+<body>
+<div id="stage" data-composition-id="main" data-width="1920" data-height="1080" data-duration="45">
+
+  <div class="band" id="b1"></div>
+  <div class="band" id="b2"></div>
+  <div class="band" id="b3"></div>
+  <div class="band" id="b4"></div>
+
+  <div class="seam" id="s1" style="top:262px"></div>
+  <div class="seam" id="s2" style="top:530px"></div>
+  <div class="seam" id="s3" style="top:798px"></div>
+
+  <div id="kids"></div>
+
+  <div id="subs"><div id="l1"></div></div>
+
+  <div id="vignette"></div>
+  <div id="grain"></div>
+  <div id="black"></div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<script>
+(function () {
+  var DUR = 45;
+
+  /* seeded PRNG: identical pixels on every render pass */
+  var __seed = 0x2545f491;
+  function srnd() {
+    __seed |= 0; __seed = (__seed + 0x6D2B79F5) | 0;
+    var t = Math.imul(__seed ^ (__seed >>> 15), 1 | __seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+  function rnd(a, b) { return a + srnd() * (b - a); }
+  function $(id) { return document.getElementById(id); }
+
+  function mk(tag, css, host, cls) {
+    var d = document.createElement(tag);
+    for (var k in css) d.style[k] = css[k];
+    if (cls) d.className = cls;
+    if (host) host.appendChild(d);
+    return d;
+  }
+
+  var B = { b1: $('b1'), b2: $('b2'), b3: $('b3'), b4: $('b4') };
+  var BANDTOP = { 1: 0, 2: 268, 3: 536, 4: 804 };
+  var BANDH = 262;
+
+  /* ============ band 1 decoration: white room, piano, sunlight, rail ============ */
+  (function decorate1() {
+    var h = B.b1;
+    mk('div', {}, h, 'wall');
+    mk('div', {}, h, 'light');
+    mk('div', {}, h, 'sun');
+    var piano = mk('div', {}, h, 'piano');
+    mk('div', {}, piano, 'keys');
+    var floor = mk('div', {}, h, 'floor');
+    /* bookshelf with books whose heights encode "how much is given to you" */
+    mk('div', {}, h, 'shelf');
+    var shelf = h.querySelector('.shelf');
+    var cols = ['#8c5a4a', '#4a6a8c', '#7a7a4a', '#6a4a7a', '#4a7a6a'];
+    for (var i = 0; i < 14; i++) {
+      mk('div', {
+        left: (6 + i * 25) + 'px',
+        height: rnd(52, 86) + 'px',
+        background: cols[i % cols.length]
+      }, shelf, 'book');
+    }
+    mk('div', {}, h, 'rail');
+    mk('div', { left: '700px' }, h, 'railp');
+    mk('div', { left: '1300px' }, h, 'railp');
+  })();
+
+  /* ============ band 2 decoration: stairwell, bulb, meter, pipe ============ */
+  (function decorate2() {
+    var h = B.b2;
+    mk('div', {}, h, 'wall');
+    var stair = mk('div', {}, h, 'stair');
+    for (var i = 0; i < 9; i++) {
+      mk('div', {
+        left: (i * 46) + 'px',
+        bottom: (i * 27) + 'px',
+        width: '120px',
+        height: '27px',
+        background: i % 2 ? '#2b3330' : '#252d2a'
+      }, stair, 'step');
+    }
+    mk('div', {}, h, 'pipe');
+    mk('div', {}, h, 'meter');
+    mk('div', {}, h, 'door');
+    mk('div', {}, h, 'cone');
+    mk('div', {}, h, 'bulb');
+  })();
+
+  /* ============ band 3 decoration: corrugated sheet wall, tarp, crates ============ */
+  (function decorate3() {
+    var h = B.b3;
+    for (var i = 0; i < 12; i++) {
+      var s = mk('div', { left: (i * 150) + 'px' }, h, 'sheet');
+      for (var r = 0; r < 5; r++) mk('div', { left: (r * 30 + 12) + 'px' }, s, 'rib');
+    }
+    mk('div', {}, h, 'tarp');
+    mk('div', {}, h, 'ground');
+    mk('div', {}, h, 'puddle');
+    mk('div', { left: '1180px' }, h, 'crate');
+    mk('div', { left: '1180px', bottom: '148px' }, h, 'crate');
+    mk('div', {}, h, 'cord');
+    /* a bare bulb on a cord: the only light this house owns */
+    mk('div', {
+      left: '901px', top: '96px', width: '12px', height: '12px', borderRadius: '50%',
+      background: '#ffe6b0', boxShadow: '0 0 22px 7px rgba(255,215,140,0.40)',
+      position: 'absolute'
+    }, h);
+  })();
+
+  /* ============ band 4 decoration: shutters, neon, boxes ============ */
+  (function decorate4() {
+    var h = B.b4;
+    mk('div', {}, h, 'back');
+    mk('div', {}, h, 'spill');
+    mk('div', {}, h, 'asphalt');
+    mk('div', {}, h, 'neon');
+    mk('div', {}, h, 'neon2');
+    var sh = mk('div', {}, h, 'shutter');
+    mk('div', {}, sh, 'lip');
+    mk('div', { left: '980px' }, h, 'box');
+    mk('div', { left: '1040px', bottom: '124px' }, h, 'box');
+  })();
+  
+  /* ---- id pass: the timeline addresses these by '#id' ---- */
+  ['sun', 'bulb', 'neon', 'neon2', 'shutter'].forEach(function (c, i) {
+    var hosts = ['b1', 'b2', 'b4', 'b4', 'b4'];
+    var host = $(hosts[i]);
+    var el = host ? host.querySelector('.' + c) : null;
+    if (el) el.id = c;
+  });
+
+
+  /* ============ helper: build one stick child ============ */
+  function buildKid(opt) {
+    var el = mk('div', {}, $('kids'), 'kid');
+    el.style.left = opt.x + 'px';
+    el.style.top = opt.y + 'px';
+    el.style.width = opt.w + 'px';
+    el.style.height = opt.h + 'px';
+    var c = opt.color;
+    var lw = opt.limb;
+
+    var shadow = mk('div', {
+      left: (opt.w * 0.5 - 34) + 'px', top: (opt.h - 8) + 'px',
+      width: '68px', height: '14px',
+      background: opt.shadow || 'rgba(0,0,0,0.35)'
+    }, el, 'shadow');
+
+    var hipY = opt.h * 0.52, neckY = opt.h * 0.30;
+    var headR = opt.w * 0.26;
+
+    var legL = mk('div', {
+      left: (opt.w * 0.50 - lw / 2 - 5) + 'px', top: hipY + 'px',
+      width: lw + 'px', height: (opt.h - hipY - 6) + 'px', background: c
+    }, el, 'leg');
+    var legR = mk('div', {
+      left: (opt.w * 0.50 - lw / 2 + 5) + 'px', top: hipY + 'px',
+      width: lw + 'px', height: (opt.h - hipY - 6) + 'px', background: c
+    }, el, 'leg');
+
+    var body = mk('div', {
+      left: (opt.w * 0.50 - lw / 2) + 'px', top: neckY + 'px',
+      width: lw + 'px', height: (hipY - neckY + 4) + 'px', background: c
+    }, el, 'body');
+
+    var armL = mk('div', {
+      left: (opt.w * 0.50 - lw / 2 - lw * 1.1) + 'px', top: (neckY + 6) + 'px',
+      width: (lw - 1) + 'px', height: (opt.h * 0.26) + 'px', background: c
+    }, el, 'arm');
+    var armR = mk('div', {
+      left: (opt.w * 0.50 + lw / 2 + lw * 0.1) + 'px', top: (neckY + 6) + 'px',
+      width: (lw - 1) + 'px', height: (opt.h * 0.26) + 'px', background: c
+    }, el, 'arm');
+
+    var head = mk('div', {
+      left: (opt.w * 0.50 - headR) + 'px', top: (neckY - headR * 2 - 2) + 'px',
+      width: (headR * 2) + 'px', height: (headR * 2) + 'px', background: c
+    }, el, 'head');
+
+    return {
+      el: el, legL: legL, legR: legR, armL: armL, armR: armR,
+      body: body, head: head, shadow: shadow,
+      baseTop: opt.y, baseLeft: opt.x, h: opt.h, w: opt.w,
+      hipY: hipY, neckY: neckY
+    };
+  }
+})();
+  /* =========================================================
+     THE FOUR CHILDREN
+     same age, same second, four different starting conditions.
+     ========================================================= */
+
+  /* 1 — white house: lifted onto the piano bench, held up by the rail */
+  var K1 = buildKid({
+    x: 300, y: 74, w: 74, h: 132, limb: 9,
+    color: '#2a2420', shadow: 'rgba(90,70,40,0.35)'
+  });
+
+  /* 2 — stairwell: sits on a step, waits for a door that is not his */
+  var K2 = buildKid({
+    x: 500, y: 268 + 112, w: 68, h: 122, limb: 8,
+    color: '#cfd8d2', shadow: 'rgba(0,0,0,0.55)'
+  });
+
+  /* 3 — tin shack: crouches by the crates, small on purpose */
+  var K3 = buildKid({
+    x: 700, y: 536 + 128, w: 62, h: 112, limb: 8,
+    color: '#e6dccb', shadow: 'rgba(0,0,0,0.50)'
+  });
+
+  /* 4 — store back door: stands under the neon, weight on one leg */
+  var K4 = buildKid({
+    x: 1450, y: 804 + 96, w: 76, h: 136, limb: 9,
+    color: '#f2d9e8', shadow: 'rgba(255,79,168,0.20)'
+  });
+
+  var KIDS = [K1, K2, K3, K4];
+
+  /* a fifth pair of hands: the parent who lifts K1. appears, then leaves. */
+  var P1 = buildKid({
+    x: 232, y: 46, w: 92, h: 168, limb: 11,
+    color: '#4a4038', shadow: 'rgba(90,70,40,0.25)'
+  });
+
+  /* give every child a resting pose so nothing is a blank stick */
+  function rest(k, lean) {
+    gsap.set(k.legL, { rotation: lean || 0 });
+    gsap.set(k.legR, { rotation: -(lean || 0) });
+    gsap.set(k.armL, { rotation: 8 });
+    gsap.set(k.armR, { rotation: -8 });
+  }
+  rest(K1, 3); rest(K2, 6); rest(K3, 10); rest(K4, 2);
+
+  /* K3 is crouching: squash the whole figure a little */
+  gsap.set(K3.el, { scaleY: 0.82, transformOrigin: '50% 100%' });
+
+  /* =========================================================
+     scenery that behaves like people: light, dust, neon, rain-ish dust
+     ========================================================= */
+
+  /* dust drifting through the band 1 sunlight */
+  var dustHost = K1.el.parentNode;
+  var dust = [];
+  for (var i = 0; i < 26; i++) {
+    var d = mk('div', {
+      position: 'absolute',
+      left: rnd(920, 1880) + 'px',
+      top: rnd(-30, 240) + 'px',
+      width: rnd(2, 4) + 'px',
+      height: rnd(2, 4) + 'px',
+      borderRadius: '50%',
+      background: 'rgba(255,244,214,0.75)',
+      opacity: rnd(0.15, 0.55).toFixed(2),
+      zIndex: 15
+    }, dustHost);
+    dust.push(d);
+  }
+
+  /* band 2: a second bulb further down the corridor that flickers out */
+  var bulb2 = mk('div', {
+    position: 'absolute', left: '1500px', top: '128px',
+    width: '14px', height: '14px', borderRadius: '50%',
+    background: '#ffe9a8', boxShadow: '0 0 24px 7px rgba(255,220,140,0.45)', zIndex: 12
+  }, B.b2);
+
+  /* band 3: a leak running down the sheet metal */
+  var leak = mk('div', {
+    position: 'absolute', left: '760px', top: '0px', width: '3px', height: '150px',
+    background: 'linear-gradient(180deg, rgba(180,205,220,0) 0%, rgba(180,205,220,0.55) 70%, rgba(180,205,220,0.15) 100%)',
+    filter: 'blur(0.6px)', zIndex: 12
+  }, B.b3);
+
+  /* band 4: a stray cat, or the shape of one, that crosses once */
+  var cat = mk('div', {
+    position: 'absolute', left: '0px', top: '196px', width: '46px', height: '22px',
+    background: '#3a2f42', borderRadius: '11px 11px 4px 4px', zIndex: 15, opacity: 0.85
+  }, B.b4);
+  mk('div', {
+    position: 'absolute', left: '34px', top: '-8px', width: '14px', height: '14px',
+    borderRadius: '50%', background: '#3a2f42'
+  }, cat);
+
+  
+  /* ---- id pass for the p3 props ---- */
+  bulb2.id = 'bulb2';
+  leak.id = 'leak';
+  cat.id = 'cat';
+
+  /* the two figures the timeline needs but nothing has built yet */
+  var runner = mk('div', {
+    position: 'absolute', left: '-120px', top: '120px', width: '46px', height: '96px',
+    background: 'rgba(0,0,0,0.55)', borderRadius: '22px 22px 6px 6px'
+  }, $('b4'), 'runner');
+  runner.id = 'runner';
+
+  var handoff = mk('div', {
+    position: 'absolute', left: '120px', top: '70px', width: '96px', height: '10px',
+    background: 'rgba(120,96,70,0.65)', borderRadius: '5px'
+  }, $('b1'), 'handoff');
+  handoff.id = 'handoff';
+
+  var doorlight = mk('div', {
+    position: 'absolute', left: '160px', top: '150px', width: '220px', height: '110px',
+    background: 'radial-gradient(ellipse at 50% 100%, rgba(255,214,140,0.9), rgba(255,214,140,0) 70%)',
+    opacity: 0
+  }, $('b4'), 'doorlight');
+  doorlight.id = 'doorlight';
+
+  gsap.set(['#runner', '#handoff'], { opacity: 0 });
+
+/* the seams breathe: they are the only thing the four lives share */
+  var seamGlow = [];
+  ['s1', 's2', 's3'].forEach(function (id) {
+    seamGlow.push($(id));
+  });
+/* =========================================================
+   TIMELINE  /  first half: 0 - 22s
+   same clock, four lives. every beat lands on the same frame.
+   ========================================================= */
+  var tl = gsap.timeline({ paused: true });
+
+  /* ---- 0.0 : black fades up ---- */
+  tl.to('#black', { opacity: 0, duration: 1.6, ease: 'power2.out' }, 0);
+
+  /* ---- 0.6 : the four shadows arrive before the four bodies ---- */
+  KIDS.forEach(function (k, i) {
+    tl.from(k.shadow, { opacity: 0, duration: 1.0, ease: 'power1.out' }, 0.6 + i * 0.12);
+  });
+
+  /* ---- 1.2 : K1 is lifted. the parent's hands come from above. ---- */
+  tl.from(P1.el, { opacity: 0, y: -26, duration: 1.1, ease: 'power2.out' }, 1.2);
+  tl.from(K1.el, { y: 40, opacity: 0, duration: 1.4, ease: 'power3.out' }, 1.2);
+  tl.to(K1.el, { y: '-=34', duration: 3.2, ease: 'sine.inOut' }, 3.0);
+  tl.to(P1.el, { y: '-=34', duration: 3.2, ease: 'sine.inOut' }, 3.0);
+  tl.to(K1.armL, { rotation: -18, duration: 1.6, ease: 'sine.inOut' }, 3.4);
+  tl.to(K1.armR, { rotation: 18, duration: 1.6, ease: 'sine.inOut' }, 3.4);
+
+  /* ---- 1.6 : K2 stands on the stairs. the bulb above it stutters. ---- */
+  tl.from(K2.el, { opacity: 0, duration: 1.6, ease: 'power1.out' }, 1.6);
+  tl.to('#bulb', { opacity: 0.25, duration: 0.09, repeat: 3, yoyo: true }, 2.4);
+  tl.to('#bulb', { opacity: 0.9, duration: 0.7, ease: 'sine.out' }, 3.2);
+  tl.to(K2.head, { rotation: -4, duration: 2.4, ease: 'sine.inOut' }, 4.0);
+
+  /* ---- 2.0 : K3 is squeezed into the tin wall, then left alone ---- */
+  tl.from(K3.el, { opacity: 0, duration: 1.4, ease: 'power1.out' }, 2.0);
+  tl.to(K3.el, { y: '+=10', duration: 4.0, ease: 'sine.inOut' }, 3.6);
+  tl.to(K3.shadow, { scaleX: 1.25, duration: 4.0, ease: 'sine.inOut' }, 3.6);
+
+  /* ---- 2.4 : K4 waits at the shutter. neon on the wet ground. ---- */
+  tl.from(K4.el, { opacity: 0, duration: 1.5, ease: 'power1.out' }, 2.4);
+  tl.to(K4.head, { rotation: 5, duration: 2.0, ease: 'sine.inOut', repeat: 1, yoyo: true }, 4.2);
+  tl.to(K4.legL, { rotation: 3, duration: 0.9, ease: 'sine.inOut', repeat: 3, yoyo: true }, 5.0);
+
+  /* ---- 5.0 : the only shared event. all four turn their heads. ---- */
+  tl.to([K1.head, K2.head, K3.head, K4.head], {
+    rotation: 0, duration: 0.8, ease: 'power2.out'
+  }, 5.0);
+
+  /* ---- 6.0 : the parent lets go. K1 drops back and stays. ---- */
+  tl.to(P1.el, { y: '-=60', opacity: 0, duration: 2.2, ease: 'power2.in' }, 6.0);
+  tl.to(K1.el, { y: '+=0', duration: 2.2, ease: 'power2.inOut' }, 8.2);
+  tl.to(K1.armL, { rotation: 12, duration: 1.4, ease: 'sine.inOut' }, 8.4);
+  tl.to(K1.armR, { rotation: -12, duration: 1.4, ease: 'sine.inOut' }, 8.4);
+
+  /* ---- 8.0 : K2 climbs two steps and stops. one step per year. ---- */
+  tl.to(K2.el, { y: '-=26', duration: 1.1, ease: 'steps(2)' }, 8.0);
+  tl.to(K2.el, { y: '-=13', duration: 1.6, ease: 'power2.inOut' }, 10.4);
+
+  /* ---- 9.0 : water runs down inside the tin wall ---- */
+  tl.to('#leak', { opacity: 0.55, duration: 3.0, ease: 'sine.inOut' }, 9.0);
+  tl.to(K3.el, { y: '+=6', duration: 3.0, ease: 'sine.inOut' }, 10.0);
+
+  /* ---- 10.0 : someone runs past K4. the shutter does not open. ---- */
+  tl.from('#runner', { x: -220, opacity: 0, duration: 0.6, ease: 'power2.out' }, 10.0);
+  tl.to('#runner', { x: 240, opacity: 0, duration: 2.4, ease: 'power1.in' }, 10.4);
+  tl.to(K4.head, { rotation: -7, duration: 0.7, ease: 'sine.inOut' }, 10.6);
+  tl.to(K4.head, { rotation: 0, duration: 1.2, ease: 'sine.out' }, 11.6);
+
+  /* ---- 12.0 : the sun moves across band 1 only ---- */
+  tl.to('#sun', { x: 120, y: 26, duration: 10.0, ease: 'none' }, 12.0);
+  tl.to('#b1', { filter: 'brightness(1.06)', duration: 6.0, ease: 'sine.inOut' }, 12.0);
+
+  /* ---- 13.0 : neon flickers. the fridge hums. nobody comes out. ---- */
+  tl.to(['#neon', '#neon2'], { opacity: 0.35, duration: 0.10, repeat: 5, yoyo: true }, 13.0);
+  tl.to(['#neon', '#neon2'], { opacity: 1, duration: 0.9, ease: 'sine.out' }, 14.2);
+
+  /* ---- 14.5 : K1 sits down. the piano lid stays shut. ---- */
+  tl.to(K1.el, { y: '+=26', scaleY: 0.92, transformOrigin: '50% 100%', duration: 1.6, ease: 'power2.inOut' }, 14.5);
+  tl.to(K1.shadow, { scaleX: 1.3, duration: 1.6, ease: 'power2.inOut' }, 14.5);
+
+  /* ---- 15.5 : K2 slides down the wall, one step ---- */
+  tl.to(K2.el, { y: '+=18', duration: 1.8, ease: 'power2.in' }, 15.5);
+  tl.to('#bulb', { opacity: 0.45, duration: 1.8, ease: 'sine.in' }, 15.5);
+
+  /* ---- 16.0 : K3 puts both hands on the wet tin ---- */
+  tl.to([K3.armL, K3.armR], { rotation: -34, duration: 1.4, ease: 'sine.inOut' }, 16.0);
+  tl.to(K3.el, { y: '+=4', duration: 1.4, ease: 'sine.inOut' }, 16.0);
+
+  /* ---- 17.0 : K4 steps back into the neon puddle ---- */
+  tl.to(K4.el, { x: '+=16', duration: 2.0, ease: 'power1.inOut' }, 17.0);
+  tl.to(K4.shadow, { opacity: 0.5, duration: 2.0, ease: 'sine.inOut' }, 17.0);
+
+  /* ---- 18.0 : dust drifts through band 1 light only ---- */
+  gsap.utils.toArray('.dust').forEach(function (d, i) {
+    tl.to(d, {
+      y: '-=' + (10 + (i % 5) * 5),
+      x: '+=' + ((i % 2) ? 8 : -8),
+      opacity: 0.05,
+      duration: 6 + (i % 4),
+      ease: 'sine.inOut'
+    }, 18.0 + (i % 6) * 0.2);
+  });
+
+  /* ---- 20.0 : all four exhale. nothing else moves. ---- */
+  tl.to([K1.body, K2.body, K3.body, K4.body], {
+    scaleY: 0.975, transformOrigin: '50% 100%', duration: 1.6, ease: 'sine.inOut'
+  }, 20.0);
+
+  /* ---- 21.0 : the three seams brighten. the only shared thing. ---- */
+  tl.to(['#s1', '#s2', '#s3'], { opacity: 0.55, duration: 2.0, ease: 'sine.inOut' }, 21.0);
+/* =========================================================
+   TIMELINE  /  second half: 22 - 45s
+   four directions. one of them has a door.
+   ========================================================= */
+
+  /* ---- 22.0 : the seams go dark again ---- */
+  tl.to(['#s1', '#s2', '#s3'], { opacity: 0.18, duration: 2.4, ease: 'sine.inOut' }, 22.0);
+
+  /* ---- 23.0 : K1 stands up. the parent does not return. ---- */
+  tl.to(K1.el, { y: '-=26', scaleY: 1, transformOrigin: '50% 100%', duration: 1.8, ease: 'power2.inOut' }, 23.0);
+  tl.to(K1.shadow, { scaleX: 1, duration: 1.8, ease: 'power2.inOut' }, 23.0);
+
+  /* ---- 23.5 : K2 climbs again — upward, out of frame potential ---- */
+  tl.to(K2.el, { y: '-=40', duration: 3.0, ease: 'steps(3)' }, 23.5);
+
+  /* ---- 24.0 : K3 peels off the wall and turns around ---- */
+  tl.to(K3.el, { rotate: -6, transformOrigin: '50% 100%', duration: 2.2, ease: 'power2.inOut' }, 24.0);
+  tl.to([K3.armL, K3.armR], { rotation: 0, duration: 1.8, ease: 'sine.inOut' }, 24.0);
+
+  /* ---- 24.5 : K4 walks away from the shutter ---- */
+  tl.to(K4.el, { x: '-=70', duration: 3.4, ease: 'power1.inOut' }, 24.5);
+
+  /* ---- 26.0 : all four start walking. four vectors. ---- */
+  tl.to(K1.el, { x: '+=64', duration: 6.0, ease: 'none' }, 26.0);
+  tl.to(K2.el, { x: '+=0', duration: 6.0, ease: 'none' }, 26.0);
+  tl.to(K3.el, { x: '-=52', duration: 6.0, ease: 'none' }, 26.0);
+  tl.to(K4.el, { x: '+=58', duration: 6.0, ease: 'none' }, 26.0);
+
+  /* legs alternate: cheap but readable walk cycle */
+  [K1, K2, K3, K4].forEach(function (k, i) {
+    var off = 26.0 + i * 0.08;
+    for (var n = 0; n < 6; n++) {
+      tl.to(k.legL, { rotation: 9, duration: 0.42, ease: 'sine.inOut' }, off + n * 1.0);
+      tl.to(k.legR, { rotation: -9, duration: 0.42, ease: 'sine.inOut' }, off + n * 1.0);
+      tl.to(k.legL, { rotation: 0, duration: 0.42, ease: 'sine.inOut' }, off + n * 1.0 + 0.5);
+      tl.to(k.legR, { rotation: 0, duration: 0.42, ease: 'sine.inOut' }, off + n * 1.0 + 0.5);
+    }
+  });
+
+  /* ---- 27.0 : the parent's hand crosses band 1 one last time ---- */
+  tl.from('#handoff', { opacity: 0, x: -40, duration: 2.0, ease: 'power2.out' }, 27.0);
+  tl.to('#handoff', { opacity: 0, y: -30, duration: 2.2, ease: 'power2.in' }, 29.4);
+
+  /* ---- 28.0 : K2's bulb dies for good ---- */
+  tl.to('#bulb', { opacity: 0, duration: 0.5, ease: 'power1.in' }, 28.0);
+  tl.to('#bulb2', { opacity: 0.85, duration: 0.4, ease: 'sine.out' }, 28.4);
+  tl.to('#bulb2', { opacity: 0.3, duration: 2.6, ease: 'sine.in' }, 30.0);
+
+  /* ---- 29.0 : K3 walks into fog instead of a room ---- */
+  tl.to('#b3', { filter: 'brightness(0.72)', duration: 5.0, ease: 'sine.inOut' }, 29.0);
+  tl.to('#b3', { filter: 'blur(0.6px) brightness(0.66)', duration: 4.0, ease: 'sine.inOut' }, 34.0);
+
+  /* ---- 30.0 : the shutter finally opens — for nobody ---- */
+  tl.to('#shutter', { y: '-=42', duration: 3.0, ease: 'power2.inOut' }, 30.0);
+  tl.to('#doorlight', { opacity: 0.9, duration: 1.4, ease: 'sine.out' }, 32.4);
+  tl.to('#neon', { opacity: 0, duration: 1.8, ease: 'sine.in' }, 33.0);
+  tl.to('#neon2', { opacity: 0, duration: 2.4, ease: 'sine.in' }, 33.4);
+
+  /* ---- 31.0 : the cat leaves before he does ---- */
+  tl.to('#cat', { x: '-=46', opacity: 0.2, duration: 3.2, ease: 'power1.in' }, 31.0);
+
+  /* ---- 32.0 : light on band 1 goes warm, then thin ---- */
+  tl.to('#b1', { filter: 'brightness(0.86)', duration: 6.0, ease: 'sine.inOut' }, 32.0);
+  tl.to('#sun', { opacity: 0.35, duration: 5.0, ease: 'sine.inOut' }, 32.0);
+
+  /* ---- 33.0 : dust settles. nobody watches it. ---- */
+  tl.to('.dust', { opacity: 0, duration: 4.0, ease: 'sine.in' }, 33.0);
+
+  /* ---- 34.0 : one micro-landing per band, staggered by 0.5s ---- */
+  tl.to(K1.el, { x: '-=18', duration: 3.0, ease: 'power2.out' }, 34.0);
+  tl.to(K2.el, { y: '-=8', duration: 3.0, ease: 'power2.out' }, 34.5);
+  tl.to(K3.el, { opacity: 0.8, duration: 3.0, ease: 'sine.inOut' }, 35.0);
+  tl.to(K4.el, { x: '-=24', opacity: 0.75, duration: 3.0, ease: 'power2.out' }, 35.5);
+
+  /* ---- 36.0 : all four stop. four silhouettes, four heights ---- */
+  tl.to([K1.head, K2.head, K3.head, K4.head], {
+    rotation: 0, duration: 1.2, ease: 'power2.out'
+  }, 36.0);
+
+  /* ---- 37.0 : the room lights of band 4 cut out ---- */
+  tl.to('#doorlight', { opacity: 0, duration: 2.0, ease: 'power2.in' }, 37.0);
+
+  /* ---- 38.0 : vertical squeeze: the frame itself closes down ---- */
+  tl.to('#stage', { scaleY: 0.985, transformOrigin: '50% 50%', duration: 3.0, ease: 'sine.inOut' }, 38.0);
+
+  /* ---- 39.0 : bands dim one by one, top to bottom ---- */
+  tl.to('#b1', { opacity: 0.72, duration: 2.4, ease: 'sine.inOut' }, 39.0);
+  tl.to('#b2', { opacity: 0.6, duration: 2.4, ease: 'sine.inOut' }, 39.6);
+  tl.to('#b3', { opacity: 0.5, duration: 2.4, ease: 'sine.inOut' }, 40.2);
+  tl.to('#b4', { opacity: 0.42, duration: 2.4, ease: 'sine.inOut' }, 40.8);
+
+  /* ---- 41.0 : the seams are the last thing still lit ---- */
+  tl.to(['#s1', '#s2', '#s3'], { opacity: 0.3, duration: 2.0, ease: 'sine.inOut' }, 41.0);
+  tl.to(['#s1', '#s2', '#s3'], { opacity: 0, duration: 1.4, ease: 'sine.in' }, 43.0);
+
+  /* ---- 42.0 : four heads, one horizon line ---- */
+  tl.to([K1.el, K2.el, K3.el, K4.el], { opacity: 0.35, duration: 2.4, ease: 'sine.in' }, 42.0);
+
+  /* ---- 43.4 : fade out ---- */
+  tl.to('#black', { opacity: 1, duration: 1.6, ease: 'power1.in' }, 43.4);
+
+  /* ---- hard contract: the timeline must know its own length ---- */
+  tl.set({}, {}, DUR);
+  window.__timelines = window.__timelines || {};
+  window.__timelines['main'] = tl;
+/* =========================================================
+   SUBTITLES  /  eight lines. no adjectives. just the account.
+   mechanism: tl.call writes innerHTML, set() zeroes it,
+   to() fades in, then fades out.
+   ========================================================= */
+  var L = $('#l1');
+  var SUBS = [
+    { t: 2.2,  d: 2.8, s: '\u4ed6\u51fa\u751f\u7684\u65f6\u5019\uff0c\u697c\u4e0b\u505c\u4e86\u4e00\u8f86\u5f88\u597d\u7684\u8f66' },
+    { t: 6.0,  d: 3.0, s: '\u4ed6\u51fa\u751f\u7684\u65f6\u5019\uff0c\u697c\u4e0b\u7684\u706f\u662f\u574f\u7684' },
+    { t: 9.8,  d: 3.0, s: '\u4ed6\u51fa\u751f\u7684\u65f6\u5019\uff0c\u96e8\u6b63\u597d\u6f0f\u8fdb\u5c4b\u91cc' },
+    { t: 13.6, d: 3.0, s: '\u4ed6\u51fa\u751f\u7684\u65f6\u5019\uff0c\u6ca1\u6709\u4eba\u5728\u5a18\u80ce\u623f' },
+    { t: 18.0, d: 3.4, s: '\u56db\u4e2a\u4eba\u540c\u4e00\u5929\u51fa\u751f\uff0c\u4e0d\u5728\u540c\u4e00\u6761\u8def\u4e0a' },
+    { t: 23.4, d: 3.4, s: '\u6709\u4eba\u5b66\u4f1a\u4e86\u8981\uff0c\u6709\u4eba\u5b66\u4f1a\u4e86\u7b49' },
+    { t: 28.8, d: 3.4, s: '\u6709\u4eba\u5b66\u4f1a\u4e86\u4e0d\u8981' },
+    { t: 34.4, d: 4.0, s: '\u4ed6\u4eec\u90fd\u6ca1\u9519\uff0c\u53ea\u662f\u8d77\u70b9\u4e0d\u5728\u540c\u4e00\u5c42' }
+  ];
+
+  SUBS.forEach(function (s) {
+    tl.call(function () { L.innerHTML = s.s; }, null, s.t);
+    tl.set(L, { opacity: 0 }, s.t);
+    tl.to(L, { opacity: 1, duration: 0.55, ease: 'power1.out' }, s.t + 0.02);
+    tl.to(L, { opacity: 0, duration: 0.55, ease: 'power1.in' }, s.t + s.d);
+  });
+
+  /* nothing speaks in the last four seconds. that is the point. */
+</script>
+</body>
+</html>
