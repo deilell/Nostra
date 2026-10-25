@@ -1,0 +1,80 @@
+name: render-vibeds5
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'vibeds5/**'
+      - '.github/workflows/render-vibeds5.yml'
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      HYPERFRAMES_TELEMETRY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install ffmpeg
+        run: sudo apt-get update -qq && sudo apt-get install -y ffmpeg
+      - name: Install Chromium deps
+        run: |
+          sudo apt-get install -y libasound2t64 || sudo apt-get install -y libasound2 || true
+          sudo apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libpango-1.0-0 libcairo2 || true
+      - name: Install hyperframes
+        working-directory: vibeds5
+        run: npm install -D hyperframes
+      - name: Generate audio
+        working-directory: vibeds5
+        run: |
+          mkdir -p audio
+          chmod +x tools/build_audio.sh
+          ./tools/build_audio.sh 72 audio/room.wav
+          ls -l audio/
+      - name: Probe audio
+        working-directory: vibeds5
+        run: |
+          ffprobe -hide_banner audio/room.wav
+          ffmpeg -hide_banner -i audio/room.wav -af volumedetect -f null - 2>&1 | tail -12
+      - name: Lint
+        working-directory: vibeds5
+        run: npx hyperframes lint 2>&1 | tee /tmp/lint.log || true
+      - name: Render
+        working-directory: vibeds5
+        run: npx hyperframes render 2>&1 | tee /tmp/render.log
+      - name: Collect output
+        working-directory: vibeds5
+        run: |
+          mkdir -p out
+          find . -name "*.mp4" -not -path "./node_modules/*" -exec cp {} out/ \; 2>/dev/null || true
+          ls -l out/
+      - name: Mux audio
+        working-directory: vibeds5
+        run: |
+          set -x
+          SRC=$(find out -name "*.mp4" | head -1)
+          echo "SRC=$SRC"
+          ffmpeg -y -i "$SRC" -i audio/room.wav -c:v copy -c:a aac -b:a 192k -shortest out/final.mp4
+          ls -l out/
+      - name: Verify final
+        working-directory: vibeds5
+        run: |
+          ffprobe -hide_banner -show_entries format=duration,size,bit_rate -show_entries stream=codec_type,codec_name,width,height,r_frame_rate out/final.mp4
+          ffmpeg -hide_banner -i out/final.mp4 -af volumedetect -f null - 2>&1 | tail -12
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r5v-logs
+          path: |
+            /tmp/lint.log
+            /tmp/render.log
+          if-no-files-found: warn
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r5v-room
+          path: |
+            vibeds5/out/final.mp4
+            vibeds5/audio/room.wav
+          if-no-files-found: warn

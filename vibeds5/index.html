@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ROOM</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { width:1920px; height:1080px; overflow:hidden; background:#0a0d11; }
+  #stage { position:absolute; inset:0; overflow:hidden; background:#0a0d11;
+    font-family:"Helvetica Neue",Helvetica,Arial,sans-serif; }
+
+  /* ---- the room: flat layers, no 3d transforms. last version lost its depth
+     to a missing preserve-3d, so this one does not rely on 3d at all. ---- */
+  #room { position:absolute; inset:0; background:
+     linear-gradient(180deg,#0e1319 0%,#111820 42%,#0d1218 78%,#080b0f 100%); }
+
+  /* back wall, slightly lighter, gives the room a boundary */
+  #backwall { position:absolute; left:0; top:0; width:1920px; height:760px;
+    background: linear-gradient(180deg,#151d26 0%,#121a22 60%,#0f151c 100%); }
+
+  /* floor */
+  #floor { position:absolute; left:0; top:700px; width:1920px; height:380px;
+    background: linear-gradient(180deg,#0d1319 0%,#0a0f14 40%,#070a0e 100%); }
+  #floorline { position:absolute; left:0; top:698px; width:1920px; height:3px;
+    background: linear-gradient(90deg,rgba(30,40,52,0) 0%,rgba(46,60,76,0.85) 30%,rgba(46,60,76,0.85) 70%,rgba(30,40,52,0) 100%);
+    filter: blur(1px); }
+
+  /* ---- the window ---- */
+  #winwrap { position:absolute; left:1080px; top:150px; width:620px; height:520px; }
+  #window { position:absolute; inset:0;
+    background: linear-gradient(180deg,#1b2733 0%,#22303e 45%,#26333f 100%);
+  }
+  /* the lamp outside: the only warm thing in the frame */
+  #lampglow { position:absolute; left:50%; top:52%; width:520px; height:520px;
+    transform: translate(-50%,-50%); border-radius:50%;
+    background: radial-gradient(circle, rgba(232,186,120,0.42) 0%, rgba(196,146,84,0.18) 34%, rgba(120,86,48,0.05) 58%, rgba(0,0,0,0) 72%);
+    filter: blur(2px); }
+  #lampcore { position:absolute; left:50%; top:52%; width:54px; height:54px;
+    margin-left:-27px; margin-top:-27px; border-radius:50%;
+    background: radial-gradient(circle,#ffdca8 0%,#e8ba78 45%,rgba(200,150,90,0.15) 78%,rgba(0,0,0,0) 100%);
+    box-shadow: 0 0 60px 22px rgba(226,178,110,0.30); }
+  /* mullions */
+  #mullionV { position:absolute; left:50%; top:0; width:10px; height:520px; margin-left:-5px;
+    background:#141c25; }
+  #mullionH { position:absolute; left:0; top:47%; width:620px; height:9px;
+    background:#141c25; }
+  #winframe { position:absolute; inset:-18px; border:18px solid #0f151c;
+    box-shadow: inset 0 0 40px rgba(0,0,0,0.85), 0 0 90px 30px rgba(0,0,0,0.55); }
+
+  /* light falling from the window onto the floor */
+  #winspill { position:absolute; left:1010px; top:690px; width:760px; height:390px;
+    background: linear-gradient(180deg, rgba(214,168,110,0.16) 0%, rgba(180,140,92,0.07) 34%, rgba(0,0,0,0) 76%);
+    filter: blur(16px); }
+
+  /* ---- the desk and the phone ---- */
+  #desk { position:absolute; left:250px; top:770px; width:700px; height:22px;
+    background: linear-gradient(180deg,#1a222b 0%,#12181f 100%);
+    box-shadow: 0 14px 40px rgba(0,0,0,0.7); }
+  #desklegL, #desklegR { position:absolute; top:792px; width:16px; height:200px;
+    background: linear-gradient(180deg,#141b22 0%,#0b1015 100%); }
+  #desklegL { left:290px; } #desklegR { left:900px; }
+
+  #phone { position:absolute; left:430px; top:722px; width:132px; height:48px;
+    border-radius:9px; background:#0a0e12;
+    border:1px solid #1b242e; transform: rotate(-4deg);
+    box-shadow: 0 6px 22px rgba(0,0,0,0.8); }
+  #screen { position:absolute; left:6px; top:5px; width:120px; height:38px;
+    border-radius:6px; background:#0b1016; opacity:0;
+    box-shadow: 0 0 0 rgba(150,190,230,0); }
+
+  /* the light the phone throws on the desk: this is the emotional beat */
+  #phonespill { position:absolute; left:352px; top:700px; width:290px; height:190px;
+    background: radial-gradient(ellipse at 50% 40%, rgba(150,190,230,0.20) 0%, rgba(110,150,196,0.07) 40%, rgba(0,0,0,0) 72%);
+    filter: blur(10px); opacity:0; }
+
+  /* barely-visible furniture silhouettes: the room is not empty, it is just quiet */
+  #bed { position:absolute; left:60px; top:800px; width:240px; height:26px;
+    background: linear-gradient(180deg,#141a21 0%,#0c1116 100%); opacity:0.9; }
+  #chair { position:absolute; left:1000px; top:760px; width:80px; height:18px;
+    background:#111820; opacity:0.85; }
+
+  /* vignette: keeps the edges honest without crushing the middle */
+  #vignette { position:absolute; inset:0; pointer-events:none;
+    background: radial-gradient(ellipse at 52% 46%, rgba(0,0,0,0) 34%, rgba(0,0,0,0.30) 72%, rgba(0,0,0,0.66) 100%); }
+
+  /* grain, very low, just so the flat areas are not dead */
+  #grain { position:absolute; inset:0; pointer-events:none; opacity:0.055;
+    background-image: repeating-linear-gradient(0deg, rgba(255,255,255,0.5) 0px, rgba(255,255,255,0.5) 1px, rgba(0,0,0,0) 2px),
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.4) 0px, rgba(255,255,255,0.4) 1px, rgba(0,0,0,0) 2px);
+    mix-blend-mode: overlay; }
+
+  /* ---- the two lines. lowercase. no drama. ---- */
+  #line1 { position:absolute; left:170px; top:250px; font-size:30px; letter-spacing:0.22em;
+    color:#8e9aa8; opacity:0; font-weight:300; }
+  #line2 { position:absolute; left:170px; top:306px; font-size:24px; letter-spacing:0.20em;
+    color:#5c6a78; opacity:0; font-weight:300; }
+  #clock { position:absolute; right:96px; bottom:70px; font-size:22px; letter-spacing:0.18em;
+    color:#4a5764; opacity:0; font-weight:300; }
+</style>
+</head>
+<body>
+<div id="stage" data-composition-id="main" data-width="1920" data-height="1080" data-duration="72">
+  <div id="room"></div>
+  <div id="backwall"></div>
+  <div id="floor"></div>
+  <div id="floorline"></div>
+  <div id="winwrap">
+    <div id="window"></div>
+    <div id="lampglow"></div>
+    <div id="lampcore"></div>
+    <div id="mullionV"></div>
+    <div id="mullionH"></div>
+    <div id="winframe"></div>
+  </div>
+  <div id="winspill"></div>
+  <div id="bed"></div>
+  <div id="desk"></div>
+  <div id="desklegL"></div>
+  <div id="desklegR"></div>
+  <div id="chair"></div>
+  <div id="phonespill"></div>
+  <div id="phone"><div id="screen"></div></div>
+  <div id="vignette"></div>
+  <div id="grain"></div>
+  <div id="line1"></div>
+  <div id="line2"></div>
+  <div id="clock"></div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<script>
+(function () {
+  var DUR = 72;
+  var tl = gsap.timeline({ paused: true });
+
+  // ---- base state: everything sits where the CSS put it ----
+  tl.set("#screen",     { opacity: 0 }, 0);
+  tl.set("#phonespill", { opacity: 0 }, 0);
+  tl.set("#line1",      { opacity: 0 }, 0);
+  tl.set("#line2",      { opacity: 0 }, 0);
+  tl.set("#clock",      { opacity: 0 }, 0);
+
+  // ---- a slow push in. 1.02 -> 1.00 over twelve seconds is almost nothing,
+  //      which is exactly the amount of motion this frame can carry. ----
+  tl.fromTo("#stage", { scale: 1.02 }, { scale: 1.0, duration: 12, ease: "none" }, 0);
+
+  // ---- the lamp outside: slow flickers, no more ----
+  tl.to("#lampglow", { opacity: 0.70, duration: 3.2, ease: "sine.inOut" }, 6.0);
+  tl.to("#lampglow", { opacity: 1.00, duration: 4.0, ease: "sine.inOut" }, 9.2);
+  tl.to("#lampglow", { opacity: 0.78, duration: 2.4, ease: "sine.inOut" }, 21.0);
+  tl.to("#lampglow", { opacity: 0.94, duration: 3.6, ease: "sine.inOut" }, 23.4);
+  tl.to("#lampglow", { opacity: 0.72, duration: 5.0, ease: "sine.inOut" }, 44.0);
+  tl.to("#lampglow", { opacity: 0.88, duration: 5.0, ease: "sine.inOut" }, 49.0);
+  tl.to("#lampcore", { opacity: 0.86, duration: 5.0, ease: "sine.inOut" }, 44.0);
+  tl.to("#lampcore", { opacity: 1.00, duration: 5.0, ease: "sine.inOut" }, 49.0);
+
+  // ---- the phone lights up, and nothing comes of it ----
+  //      four times. the fourth is the longest and nobody picks it up.
+  tl.to("#screen",     { opacity: 0.55, duration: 0.55, ease: "sine.out" }, 13.2);
+  tl.to("#phonespill", { opacity: 0.522, duration: 0.55, ease: "sine.out" }, 13.2);
+  tl.to("#screen",     { opacity: 0.10, duration: 1.1, ease: "none" }, 13.75);
+  tl.to("#phonespill", { opacity: 0.08, duration: 1.1, ease: "none" }, 13.75);
+  tl.to("#screen",     { opacity: 0, duration: 2.6, ease: "sine.inOut" }, 14.85);
+  tl.to("#phonespill", { opacity: 0, duration: 2.6, ease: "sine.inOut" }, 14.85);
+  tl.to("#screen",     { opacity: 0.72, duration: 0.55, ease: "sine.out" }, 29.4);
+  tl.to("#phonespill", { opacity: 0.684, duration: 0.55, ease: "sine.out" }, 29.4);
+  tl.to("#screen",     { opacity: 0.10, duration: 1.6, ease: "none" }, 29.95);
+  tl.to("#phonespill", { opacity: 0.08, duration: 1.6, ease: "none" }, 29.95);
+  tl.to("#screen",     { opacity: 0, duration: 2.6, ease: "sine.inOut" }, 31.55);
+  tl.to("#phonespill", { opacity: 0, duration: 2.6, ease: "sine.inOut" }, 31.55);
+  tl.to("#screen",     { opacity: 0.62, duration: 0.55, ease: "sine.out" }, 46.8);
+  tl.to("#phonespill", { opacity: 0.589, duration: 0.55, ease: "sine.out" }, 46.8);
+  tl.to("#screen",     { opacity: 0.10, duration: 1.2, ease: "none" }, 47.35);
+  tl.to("#phonespill", { opacity: 0.08, duration: 1.2, ease: "none" }, 47.35);
+  tl.to("#screen",     { opacity: 0, duration: 2.6, ease: "sine.inOut" }, 48.55);
+  tl.to("#phonespill", { opacity: 0, duration: 2.6, ease: "sine.inOut" }, 48.55);
+  tl.to("#screen",     { opacity: 0.86, duration: 0.55, ease: "sine.out" }, 58.2);
+  tl.to("#phonespill", { opacity: 0.817, duration: 0.55, ease: "sine.out" }, 58.2);
+  tl.to("#screen",     { opacity: 0.10, duration: 3.4, ease: "none" }, 58.75);
+  tl.to("#phonespill", { opacity: 0.08, duration: 3.4, ease: "none" }, 58.75);
+  tl.to("#screen",     { opacity: 0, duration: 2.6, ease: "sine.inOut" }, 62.15);
+  tl.to("#phonespill", { opacity: 0, duration: 2.6, ease: "sine.inOut" }, 62.15);
+
+  // ---- text. written with tl.call, faded with opacity. gsap cannot tween text ----
+  var l1 = document.getElementById("line1");
+  var l2 = document.getElementById("line2");
+  var ck = document.getElementById("clock");
+
+  function say(el, html, at, fade) {
+    tl.call(function () { el.innerHTML = html; }, null, at);
+    tl.to(el, { opacity: 1, duration: fade, ease: "sine.out" }, at + 0.05);
+    tl.to(el, { opacity: 0, duration: 2.2, ease: "sine.inOut" }, at + fade + 4.0);
+  }
+
+  say(l1, "it is late and the light is still on", 8.0, 1.6);
+  say(l2, "somewhere a phone is ringing, not here", 16.5, 1.4);
+  say(l1, "i am not waiting for anything", 30.0, 1.6);
+  say(l2, "i just have not turned it off", 38.0, 1.4);
+  say(l1, "the room is the same size in the morning", 52.0, 1.6);
+  say(l2, "i will find that out later", 60.0, 1.4);
+
+  // ---- clock: a few timestamps, not a ticking second hand ----
+  var STAMPS = [
+    [10.0, "02:11"], [26.0, "02:47"], [41.0, "03:19"], [56.0, "03:58"], [68.0, "04:26"]
+  ];
+  var i;
+  for (i = 0; i < STAMPS.length; i++) {
+    (function (at, txt) {
+      tl.call(function () { ck.innerHTML = txt; }, null, at);
+      tl.to(ck, { opacity: 0.55, duration: 1.2, ease: "sine.out" }, at + 0.02);
+      tl.to(ck, { opacity: 0, duration: 1.6, ease: "sine.inOut" }, at + 2.2);
+    })(STAMPS[i][0], STAMPS[i][1]);
+  }
+
+  // ---- ending: the warm light is the only thing left, then it goes too ----
+  tl.to("#winspill", { opacity: 0.55, duration: 9.0, ease: "sine.inOut" }, 60.0);
+  tl.to("#lampglow", { opacity: 0.42, duration: 8.0, ease: "sine.inOut" }, 62.0);
+  tl.to("#lampcore", { opacity: 0.55, duration: 8.0, ease: "sine.inOut" }, 62.0);
+  tl.to("#stage",    { opacity: 0, duration: 4.0, ease: "sine.in" }, 68.0);
+
+  // ---- contract: hyperframes reads this ----
+  tl.set({}, {}, DUR);
+  window.__timelines = window.__timelines || {};
+  window.__timelines["main"] = tl;
+})();
+</script>
+</body>
+</html>
