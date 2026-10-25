@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1920, initial-scale=1" />
+<title>我为什么是我</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 1920px; height: 1080px;
+    background: #08090b; overflow: hidden;
+  }
+  #root {
+    position: relative;
+    width: 1920px; height: 1080px;
+    background: #08090b;
+    color: #e6eaef;
+    font-family: sans-serif;
+    overflow: hidden;
+  }
+  .clip {
+    position: absolute;
+    inset: 0;
+    width: 1920px; height: 1080px;
+    overflow: hidden;
+  }
+  /* 顶部统一 kicker */
+  .kicker {
+    position: absolute;
+    left: 80px; top: 64px;
+    font-size: 19px;
+    letter-spacing: 0.34em;
+    color: #767f89;
+    text-transform: uppercase;
+  }
+  /* 左栏文字列 */
+  .col {
+    position: absolute;
+    left: 140px; top: 0;
+    width: 820px; height: 1080px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 26px;
+  }
+  .l1 {
+    font-size: 62px;
+    line-height: 1.24;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: #e6eaef;
+  }
+  .l2 {
+    font-size: 27px;
+    line-height: 1.62;
+    color: #9aa4ae;
+    font-weight: 400;
+  }
+  .l3 {
+    font-size: 27px;
+    line-height: 1.62;
+    color: #767f89;
+    font-weight: 400;
+  }
+  .accent { color: #c9a06a; }
+  /* 行内换行（替代 <br>） */
+  .l1 span, .l2 span, .l3 span { display: block; }
+  /* 右栏图形 */
+  .gfx {
+    position: absolute;
+    right: 100px; top: 200px;
+    width: 720px; height: 680px;
+  }
+  svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  /* 场景 2 分岔原点 */
+  .origin {
+    position: absolute;
+    left: 0; top: 50%;
+    width: 10px; height: 10px;
+    margin-top: -5px;
+    border-radius: 50%;
+    background: #c9a06a;
+    box-shadow: 0 0 22px rgba(201,160,106,0.55);
+  }
+  /* 场景 3 走廊门缝光 */
+  .seam {
+    position: absolute;
+    left: 0; top: 0;
+    width: 4px; height: 100%;
+    background: linear-gradient(180deg, rgba(201,160,106,0) 0%, rgba(201,160,106,0.85) 45%, rgba(201,160,106,0) 100%);
+  }
+  /* 场景 4 擦拭光斑 */
+  .wipe {
+    position: absolute;
+    left: 0; top: 0;
+    width: 190px; height: 190px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(230,234,239,0.16) 0%, rgba(230,234,239,0) 68%);
+    filter: blur(2px);
+  }
+  .scar {
+    position: absolute;
+    left: 0; top: 0;
+    width: 62px; height: 18px;
+    border-radius: 9px;
+    background: linear-gradient(100deg, rgba(201,160,106,0.05), rgba(201,160,106,0.55) 50%, rgba(201,160,106,0.05));
+    transform: rotate(-13deg);
+  }
+  /* 场景 6 纯黑 */
+  #s6 { background: #000; }
+  #s6 .col { align-items: flex-start; }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="self" data-width="1920" data-height="1080" data-duration="52">
+
+  <!-- ========== 场景 1 · 0-5s 睁眼 ========== -->
+  <section class="clip" id="s1" data-start="0" data-duration="5">
+    <div class="kicker">I · 开眼</div>
+    <div class="col">
+      <div class="l1" id="s1-l1">你不是被选择的。</div>
+      <div class="l2" id="s1-l2"><span>你只是先睁开了眼，</span><span>然后没有闭上。</span></div>
+    </div>
+    <div class="gfx">
+      <svg viewBox="0 0 720 680" id="s1-svg">
+        <line id="s1-horizon" x1="0" y1="340" x2="720" y2="340" stroke="#767f89" stroke-width="1" opacity="0.5"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ========== 场景 2 · 5-12s 排除法 ========== -->
+  <section class="clip" id="s2" data-start="5" data-duration="7">
+    <div class="kicker">II · 排除</div>
+    <div class="col">
+      <div class="l1" id="s2-l1">我做过的所有<em class="accent" style="font-style:normal">选择</em>，<span>都是一次排除。</span></div>
+      <div class="l2" id="s2-l2"><span>不是选中了什么，</span><span>是把别的都划掉了。</span></div>
+    </div>
+    <div class="gfx">
+      <svg viewBox="0 0 720 680" id="s2-svg"></svg>
+      <div class="origin" id="s2-origin"></div>
+    </div>
+  </section>
+
+  <!-- ========== 场景 3 · 12-20s 走廊与封死的门 ========== -->
+  <section class="clip" id="s3" data-start="12" data-duration="8">
+    <div class="kicker">III · 走廊</div>
+    <div class="col">
+      <div class="l1" id="s3-l1"><span>那些没走的路，</span><span>不进历史。</span></div>
+      <div class="l2" id="s3-l2">它们只进我的骨头。</div>
+      <div class="l3" id="s3-l3">你听得见它们在里面走。</div>
+    </div>
+    <div class="gfx">
+      <svg viewBox="0 0 720 680" id="s3-svg">
+        <polygon points="360,250 560,400 560,620 360,470 360,250" fill="#0d0f12" stroke="#2a2f36" stroke-width="1"/>
+        <polygon points="360,250 160,400 160,620 360,470 360,250" fill="#0b0d10" stroke="#2a2f36" stroke-width="1"/>
+        <polygon points="360,250 560,400 360,470 160,400" fill="#08090b" stroke="#2a2f36" stroke-width="1"/>
+      </svg>
+      <div class="seam" id="s3-seam"></div>
+    </div>
+  </section>
+
+  <!-- ========== 场景 4 · 20-30s 反复擦拭 ========== -->
+  <section class="clip" id="s4" data-start="20" data-duration="10">
+    <div class="kicker">IV · 擦拭</div>
+    <div class="col">
+      <div class="l1" id="s4-l1">我不是在想我为什么是我。</div>
+      <div class="l2" id="s4-l2">我是在一遍一遍<em class="accent" style="font-style:normal">擦</em>。</div>
+      <div class="l3" id="s4-l3">玻璃上面没有字。</div>
+    </div>
+    <div class="gfx">
+      <svg viewBox="0 0 720 680" id="s4-svg">
+        <rect x="60" y="90" width="600" height="500" fill="none" stroke="#2a2f36" stroke-width="1"/>
+      </svg>
+      <div class="wipe" id="s4-wipe"></div>
+      <div class="scar" id="s4-scar"></div>
+    </div>
+  </section>
+
+  <!-- ========== 场景 5 · 30-40s 倒影开口 ========== -->
+  <section class="clip" id="s5" data-start="30" data-duration="10">
+    <div class="kicker">V · 倒影</div>
+    <div class="col">
+      <div class="l1" id="s5-l1">倒影慢半拍才开口。</div>
+      <div class="l2" id="s5-l2">它说：那答案不存在。</div>
+      <div class="l3" id="s5-l3">它说：你找的那件事，</div>
+      <div class="l3" id="s5-l4">本来就没有被埋起来。</div>
+    </div>
+    <div class="gfx">
+      <svg viewBox="0 0 720 680" id="s5-svg">
+        <circle id="s5-ring-a" cx="360" cy="340" r="150" fill="none" stroke="#2a2f36" stroke-width="1"/>
+        <circle id="s5-ring-b" cx="360" cy="340" r="150" fill="none" stroke="#c9a06a" stroke-width="1" opacity="0.5"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ========== 场景 6 · 40-52s 我还在擦 ========== -->
+  <section class="clip" id="s6" data-start="40" data-duration="12">
+    <div class="kicker" id="s6-kicker">VI · 还在擦</div>
+    <div class="col">
+      <div class="l2" id="s6-l1">倒影穿过玻璃，按住我的手。</div>
+      <div class="l1" id="s6-l2">我还在擦。</div>
+      <div class="l3" id="s6-l3">因为换个人，不会这样擦。</div>
+      <div class="l2" id="s6-l4" style="margin-top:56px; color:#c9a06a;">这就是答案：没有答案，只有这个动作。</div>
+    </div>
+  </section>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  // 程序化确定性伪随机（线性同余，seed=1337），保证每次渲染一致
+  var _seed = 1337;
+  function rnd() {
+    _seed = (_seed * 1103515245 + 12345) % 2147483648;
+    return _seed / 2147483648;
+  }
+
+  var SVGNS = "http://www.w3.org/2000/svg";
+
+  /* ---------- 场景 2：34 条弦线，向下收窄 ---------- */
+  var s2svg = document.getElementById("s2-svg");
+  var strings = [];
+  for (var i = 0; i < 34; i++) {
+    var y0 = 40 + i * 18;
+    var x1 = 40 + rnd() * 620;
+    var y1 = 320 + (rnd() - 0.5) * 60; // 收束到中线附近
+    var ln = document.createElementNS(SVGNS, "line");
+    ln.setAttribute("x1", "0");
+    ln.setAttribute("y1", String(y0));
+    ln.setAttribute("x2", String(x1));
+    ln.setAttribute("y2", String(y1));
+    ln.setAttribute("stroke", "#2a2f36");
+    ln.setAttribute("stroke-width", "1");
+    ln.setAttribute("opacity", "0.85");
+    s2svg.appendChild(ln);
+    strings.push(ln);
+  }
+
+  /* ---------- 场景 3：透视走廊六扇门 ---------- */
+  var s3svg = document.getElementById("s3-svg");
+  var doors = [];
+  for (var d = 0; d < 6; d++) {
+    var t = d / 5;
+    var scale = 1 - t * 0.78;
+    var cx = 160 + (360 - 160) * t; // 左墙向右收
+    var cy = 400 + (470 - 400) * t;
+    var w = 120 * scale;
+    var h = 220 * scale;
+    var g = document.createElementNS(SVGNS, "g");
+    var rect = document.createElementNS(SVGNS, "rect");
+    rect.setAttribute("x", String(cx - w * 0.18));
+    rect.setAttribute("y", String(cy - h * 0.5));
+    rect.setAttribute("width", String(w * 0.36));
+    rect.setAttribute("height", String(h));
+    rect.setAttribute("fill", "#0e1116");
+    rect.setAttribute("stroke", "#3a4149");
+    rect.setAttribute("stroke-width", "1");
+    g.appendChild(rect);
+    s3svg.appendChild(g);
+    doors.push(g);
+  }
+  // 末端一面墙，最后被水泥封死
+  var endWall = document.createElementNS(SVGNS, "rect");
+  endWall.setAttribute("x", "300");
+  endWall.setAttribute("y", "288");
+  endWall.setAttribute("width", "120");
+  endWall.setAttribute("height", "164");
+  endWall.setAttribute("fill", "#08090b");
+  endWall.setAttribute("stroke", "#2a2f36");
+  endWall.setAttribute("stroke-width", "1");
+  s3svg.appendChild(endWall);
+  var cement = document.createElementNS(SVGNS, "rect");
+  cement.setAttribute("x", "300");
+  cement.setAttribute("y", "452");
+  cement.setAttribute("width", "120");
+  cement.setAttribute("height", "0");
+  cement.setAttribute("fill", "#1a1e24");
+  s3svg.appendChild(cement);
+
+  /* ---------- 场景 5：双环，慢半拍 ---------- */
+  var ringA = document.getElementById("s5-ring-a");
+  var ringB = document.getElementById("s5-ring-b");
+
+  /* ---------- 时间线 ---------- */
+  var tl = gsap.timeline({ paused: true });
+
+  /* ===== 场景 1 · 0-5 ===== */
+  tl.set("#s1-horizon", { attr: { "x2": 720 }, opacity: 0 }, 0);
+  tl.fromTo("#s1-horizon",
+    { opacity: 0, attr: { x2: 0 } },
+    { opacity: 0.5, attr: { x2: 720 }, duration: 1.6, ease: "power2.inOut" }, 0);
+  tl.fromTo("#s1-l1",
+    { opacity: 0, y: 26 },
+    { opacity: 1, y: 0, duration: 1.1, ease: "power3.out" }, 0.5);
+  tl.fromTo("#s1-l2",
+    { opacity: 0, y: 18 },
+    { opacity: 1, y: 0, duration: 1.0, ease: "power2.out" }, 1.5);
+  tl.to("#s1-l1", { opacity: 0, y: -14, duration: 0.7, ease: "power2.in" }, 4.2);
+  tl.to("#s1-l2", { opacity: 0, y: -10, duration: 0.7, ease: "power2.in" }, 4.25);
+  tl.to("#s1-horizon", { opacity: 0, duration: 0.6 }, 4.3);
+
+  /* ===== 场景 2 · 5-12 ===== */
+  tl.fromTo(strings,
+    { opacity: 0, scaleY: 0.2, transformOrigin: "0% 100%" },
+    {
+      opacity: 0.85, scaleY: 1, duration: 1.2, ease: "power2.out",
+      stagger: { each: 0.02, from: "start" }
+    }, 5.1);
+  tl.fromTo("#s2-l1",
+    { opacity: 0, y: 24 },
+    { opacity: 1, y: 0, duration: 1.0, ease: "power3.out" }, 5.4);
+  tl.fromTo("#s2-l2",
+    { opacity: 0, y: 16 },
+    { opacity: 1, y: 0, duration: 0.9, ease: "power2.out" }, 6.4);
+  // 原点向右推移，弦线随之收束（仅对圆点位移，线条做透明度重绘）
+  tl.fromTo("#s2-origin",
+    { x: 0, opacity: 0, scale: 0.4 },
+    { x: 0, opacity: 1, scale: 1, duration: 0.8, ease: "power2.out" }, 7.0);
+  tl.to(strings,
+    {
+      opacity: 0.22, duration: 1.4, ease: "power2.inOut",
+      stagger: { each: 0.012, from: "end" }
+    }, 8.6);
+  tl.to("#s2-origin", { x: 620, duration: 2.2, ease: "power2.inOut" }, 8.8);
+  tl.to("#s2-l1", { opacity: 0, y: -12, duration: 0.7, ease: "power2.in" }, 11.1);
+  tl.to("#s2-l2", { opacity: 0, y: -8, duration: 0.7, ease: "power2.in" }, 11.15);
+  tl.to(strings, { opacity: 0, duration: 0.8 }, 11.2);
+  tl.to("#s2-origin", { opacity: 0, duration: 0.5 }, 11.3);
+
+  /* ===== 场景 3 · 12-20 ===== */
+  tl.fromTo(doors,
+    { opacity: 0, y: 30 },
+    { opacity: 1, y: 0, duration: 1.1, ease: "power2.out", stagger: { each: 0.14 } }, 12.1);
+  tl.fromTo("#s3-seam",
+    { opacity: 0, scaleY: 0.3, transformOrigin: "50% 100%" },
+    { opacity: 1, scaleY: 1, duration: 1.0, ease: "power2.out" }, 12.6);
+  tl.fromTo("#s3-l1",
+    { opacity: 0, y: 22 },
+    { opacity: 1, y: 0, duration: 1.0, ease: "power3.out" }, 12.8);
+  tl.fromTo("#s3-l2",
+    { opacity: 0, y: 16 },
+    { opacity: 1, y: 0, duration: 0.9, ease: "power2.out" }, 13.9);
+  tl.fromTo("#s3-l3",
+    { opacity: 0, y: 12 },
+    { opacity: 1, y: 0, duration: 0.9, ease: "power2.out" }, 15.0);
+  // 门缝光退去，水泥从下往上爬，封死
+  tl.to("#s3-seam", { opacity: 0, duration: 1.2, ease: "power2.in" }, 17.0);
+  tl.fromTo(cement,
+    { attr: { height: 0, y: 452 } },
+    { attr: { height: 164, y: 288 }, duration: 2.4, ease: "power2.inOut" }, 17.2);
+  tl.to("#s3-l3", { opacity: 0, y: -8, duration: 0.8, ease: "power2.in" }, 19.0);
+  tl.to("#s3-l1", { opacity: 0, y: -12, duration: 0.8, ease: "power2.in" }, 19.05);
+  tl.to("#s3-l2", { opacity: 0, y: -12, duration: 0.8, ease: "power2.in" }, 19.1);
+
+  /* ===== 场景 4 · 20-30 擦拭往返 5 个来回 ===== */
+  tl.fromTo("#s4-l1",
+    { opacity: 0, y: 20 },
+    { opacity: 1, y: 0, duration: 0.9, ease: "power3.out" }, 20.2);
+  tl.fromTo("#s4-l2",
+    { opacity: 0, y: 16 },
+    { opacity: 1, y: 0, duration: 0.9, ease: "power2.out" }, 21.1);
+  tl.fromTo("#s4-l3",
+    { opacity: 0, y: 12 },
+    { opacity: 1, y: 0, duration: 0.9, ease: "power2.out" }, 22.0);
+  tl.set("#s4-wipe", { x: 160, y: 300, opacity: 0.9 }, 21.4);
+  var wipeStart = 21.6;
+  for (var w = 0; w < 5; w++) {
+    var t0 = wipeStart + w * 1.5;
+    tl.to("#s4-wipe", { x: 520, y: 300, duration: 0.75, ease: "sine.inOut" }, t0);
+    tl.to("#s4-wipe", { x: 160, y: 340, duration: 0.75, ease: "sine.inOut" }, t0 + 0.75);
+  }
+  tl.fromTo("#s4-scar",
+    { opacity: 0, scale: 0.6, rotate: -13 },
+    { opacity: 1, scale: 1, rotate: -13, duration: 1.0, ease: "power2.out" }, 27.2);
+  tl.to("#s4-wipe", { opacity: 0.45, duration: 1.2, ease: "power2.inOut" }, 27.6);
+  tl.to("#s4-l3", { opacity: 0, y: -8, duration: 0.7, ease: "power2.in" }, 29.1);
+  tl.to("#s4-l2", { opacity: 0, y: -10, duration: 0.7, ease: "power2.in" }, 29.15);
+  tl.to("#s4-l1", { opacity: 0, y: -12, duration: 0.7, ease: "power2.in" }, 29.2);
+  tl.to("#s4-wipe", { opacity: 0, duration: 0.7 }, 29.3);
+  tl.to("#s4-scar", { opacity: 0.25, duration: 0.7 }, 29.3);
+
+  /* ===== 场景 5 · 30-40 倒影慢半拍 ===== */
+  tl.fromTo(ringA,
+    { opacity: 0, scale: 0.86, transformOrigin: "360px 340px" },
+    { opacity: 1, scale: 1, duration: 1.4, ease: "power2.out" }, 30.2);
+  // B 环延迟 0.55s，制造"慢半拍"
+  tl.fromTo(ringB,
+    { opacity: 0, scale: 0.86, transformOrigin: "360px 340px" },
+    { opacity: 0.5, scale: 1, duration: 1.4, ease: "power2.out" }, 30.75);
+  tl.to(ringA, { rotation: 180, transformOrigin: "360px 340px", duration: 8.0, ease: "none" }, 31.0);
+  tl.to(ringB, { rotation: 180, transformOrigin: "360px 340px", duration: 8.0, ease: "none" }, 31.55);
+
+  tl.fromTo("#s5-l1",
+    { opacity: 0, y: 22 },
+    { opacity: 1, y: 0, duration: 1.0, ease: "power3.out" }, 30.9);
+  tl.fromTo("#s5-l2",
+    { opacity: 0, y: 16 },
+    { opacity: 1, y: 0, duration: 0.9, ease: "power2.out" }, 32.6);
+  tl.fromTo("#s5-l3",
+    { opacity: 0, y: 14 },
+    { opacity: 1, y: 0, duration: 0.85, ease: "power2.out" }, 34.0);
+  tl.fromTo("#s5-l4",
+    { opacity: 0, y: 14 },
+    { opacity: 1, y: 0, duration: 0.85, ease: "power2.out" }, 35.4);
+
+  tl.to("#s5-l1", { opacity: 0, y: -10, duration: 0.7, ease: "power2.in" }, 39.0);
+  tl.to("#s5-l2", { opacity: 0, y: -10, duration: 0.7, ease: "power2.in" }, 39.05);
+  tl.to("#s5-l3", { opacity: 0, y: -10, duration: 0.7, ease: "power2.in" }, 39.1);
+  tl.to("#s5-l4", { opacity: 0, y: -10, duration: 0.7, ease: "power2.in" }, 39.15);
+  tl.to([ringA, ringB], { opacity: 0, duration: 0.8 }, 39.1);
+
+  /* ===== 场景 6 · 40-52 全黑定版 ===== */
+  tl.fromTo("#s6-l1",
+    { opacity: 0, y: 18 },
+    { opacity: 1, y: 0, duration: 1.1, ease: "power2.out" }, 40.4);
+  tl.fromTo("#s6-l2",
+    { opacity: 0, y: 24, scale: 0.98 },
+    { opacity: 1, y: 0, scale: 1, duration: 1.3, ease: "power3.out" }, 42.0);
+  tl.to("#s6-l1", { opacity: 0.35, duration: 1.2, ease: "power2.inOut" }, 43.6);
+  tl.fromTo("#s6-l3",
+    { opacity: 0, y: 16 },
+    { opacity: 1, y: 0, duration: 1.1, ease: "power2.out" }, 44.6);
+  tl.fromTo("#s6-l4",
+    { opacity: 0, y: 14 },
+    { opacity: 1, y: 0, duration: 1.2, ease: "power2.out" }, 46.4);
+  // 定版后缓慢沉入黑
+  tl.to("#s6-l4", { opacity: 0, duration: 2.2, ease: "power2.in" }, 49.0);
+  tl.to("#s6-l3", { opacity: 0, duration: 2.2, ease: "power2.in" }, 49.3);
+  tl.to("#s6-l2", { opacity: 0, duration: 2.4, ease: "power2.in" }, 49.5);
+  tl.to("#s6-l1", { opacity: 0, duration: 2.4, ease: "power2.in" }, 49.6);
+  tl.to("#s6-kicker", { opacity: 0, duration: 2.0, ease: "power2.in" }, 49.8);
+
+  /* ---------- 注册时间线（key 与 root data-composition-id 一致） ---------- */
+  window.__timelines = window.__timelines || {};
+  window.__timelines["self"] = tl;
+
+  /* ---------- 音频（若有 voice.wav / drone.wav 则取消注释） ---------- */
+  /*
+  var a1 = document.createElement("audio");
+  a1.id = "voice";
+  a1.src = "audio/voice.wav";
+  document.getElementById("root").appendChild(a1);
+  var a2 = document.createElement("audio");
+  a2.id = "drone";
+  a2.src = "audio/drone.wav";
+  document.getElementById("root").appendChild(a2);
+  */
+})();
+</script>
+</body>
+</html>
