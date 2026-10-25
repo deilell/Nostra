@@ -16,6 +16,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Install ffmpeg
+        run: sudo apt-get update -qq && sudo apt-get install -y ffmpeg && ffmpeg -version | head -1
       - name: Install Chromium deps
         run: |
           sudo apt-get update -qq
@@ -34,7 +36,9 @@ jobs:
         working-directory: vibeds6
         run: |
           mkdir -p out
-          find . -name "*.mp4" -not -path "./node_modules/*" -exec cp {} out/ \;
+          SRC=$(find . -name "*.mp4" -not -path "./node_modules/*" | head -1)
+          echo "SRC=$SRC"
+          cp "$SRC" out/final.mp4
           ls -l out/
       - name: Verify final
         working-directory: vibeds6
