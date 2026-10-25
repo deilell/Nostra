@@ -1,0 +1,56 @@
+name: render-vibeds6
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'vibeds6/**'
+      - '.github/workflows/render-vibeds6.yml'
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      HYPERFRAMES_TELEMETRY: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Chromium deps
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y libasound2t64 || sudo apt-get install -y libasound2 || true
+          sudo apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libpango-1.0-0 libcairo2 || true
+      - name: Install hyperframes
+        working-directory: vibeds6
+        run: npm install -D hyperframes
+      - name: Lint
+        working-directory: vibeds6
+        run: npx hyperframes lint 2>&1 | tee /tmp/lint.log || true
+      - name: Render
+        working-directory: vibeds6
+        run: npx hyperframes render 2>&1 | tee /tmp/render.log
+      - name: Collect output
+        working-directory: vibeds6
+        run: |
+          mkdir -p out
+          find . -name "*.mp4" -not -path "./node_modules/*" -exec cp {} out/ \;
+          ls -l out/
+      - name: Verify final
+        working-directory: vibeds6
+        run: |
+          ffprobe -hide_banner -show_entries format=duration,size,bit_rate -show_entries stream=codec_type,codec_name,width,height,r_frame_rate out/final.mp4
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r6-logs
+          path: |
+            /tmp/lint.log
+            /tmp/render.log
+          if-no-files-found: warn
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r6-floor
+          path: vibeds6/out/final.mp4
+          if-no-files-found: warn

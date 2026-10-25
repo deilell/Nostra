@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SIXTH FLOOR</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { width:1920px; height:1080px; overflow:hidden; background:#05070b; }
+  #stage { position:absolute; inset:0; overflow:hidden; background:#05070b;
+    font-family:"Helvetica Neue",Helvetica,Arial,sans-serif; }
+
+  #sky { position:absolute; inset:0;
+    background:linear-gradient(180deg,#0a1018 0%,#101a26 42%,#18242f 74%,#1d2a33 100%); }
+  #horizon { position:absolute; left:0; top:520px; width:1920px; height:300px;
+    background:radial-gradient(ellipse 1100px 220px at 52% 100%, rgba(90,140,160,0.20), rgba(90,140,160,0.0) 70%); }
+  #fog1 { position:absolute; left:-300px; top:430px; width:2500px; height:260px;
+    background:radial-gradient(ellipse 900px 130px at 40% 60%, rgba(120,160,175,0.13), rgba(0,0,0,0) 70%); }
+  #fog2 { position:absolute; left:-400px; top:520px; width:2700px; height:300px;
+    background:radial-gradient(ellipse 1100px 150px at 65% 55%, rgba(100,140,160,0.10), rgba(0,0,0,0) 70%); }
+
+  #cityback { position:absolute; left:0; top:400px; width:1920px; height:320px; opacity:0.55; }
+  #cityback i { position:absolute; bottom:0; background:#0d151d; }
+  #cityfront { position:absolute; left:0; top:470px; width:1920px; height:280px; }
+  #cityfront i { position:absolute; bottom:0; background:#070c12; }
+  .win { position:absolute; opacity:0; }
+
+  #street { position:absolute; left:0; top:700px; width:1920px; height:380px;
+    background:linear-gradient(180deg,#0a1118 0%,#080d13 55%,#05080c 100%); }
+  #curb { position:absolute; left:0; top:740px; width:1920px; height:2px; background:#16222c; opacity:0.7; }
+  .smear { position:absolute; width:26px; background:linear-gradient(180deg,rgba(220,205,160,0.20),rgba(220,205,160,0)); filter:blur(3px); opacity:0; }
+
+  #frame { position:absolute; inset:0; z-index:60; pointer-events:none; }
+  #frame .glass { position:absolute; inset:0;
+    background:linear-gradient(180deg, rgba(150,180,195,0.055) 0%, rgba(150,180,195,0.02) 45%, rgba(0,0,0,0) 70%); }
+  #frame .bar { position:absolute; background:#04060a; }
+  #frame .mullV { left:620px; top:0; width:16px; height:1080px; }
+  #frame .mullH { left:0; top:300px; width:1920px; height:14px; }
+  #frame .jambL { left:0; top:0; width:74px; height:1080px; }
+  #frame .jambR { left:1846px; top:0; width:74px; height:1080px; }
+  #frame .head { left:0; top:0; width:1920px; height:52px; }
+  #frame .sill { left:0; top:1040px; width:1920px; height:40px; }
+
+  #glassrain { position:absolute; inset:0; z-index:58; pointer-events:none; opacity:0.55; }
+  #glassrain i { position:absolute; width:1px; height:10px; background:rgba(190,215,230,0.35); border-radius:1px; }
+
+  #glassBlock { position:absolute; left:640px; top:340px; width:420px; height:760px; z-index:40;
+    background:linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 100%); }
+  #figure { position:absolute; left:0; top:0; width:420px; height:760px; }
+  #figure div { position:absolute; }
+
+  #rainfar { position:absolute; inset:0; z-index:70; pointer-events:none; opacity:0.30; }
+  #rainmid { position:absolute; inset:0; z-index:80; pointer-events:none; opacity:0.55; }
+  #rainnear { position:absolute; inset:0; z-index:95; pointer-events:none; opacity:0.30; }
+  #rainfar i, #rainmid i, #rainnear i { position:absolute; top:-260px;
+    background:linear-gradient(180deg,rgba(200,225,240,0),rgba(205,230,245,0.85)); border-radius:2px; }
+
+  #sodium { position:absolute; inset:0; z-index:100; pointer-events:none; mix-blend-mode:screen;
+    background:radial-gradient(ellipse 720px 520px at 78% 46%, rgba(255,168,66,0.13), rgba(255,168,66,0) 68%);
+    opacity:0.7; }
+  #coldtint { position:absolute; inset:0; z-index:101; pointer-events:none; mix-blend-mode:screen;
+    background:radial-gradient(ellipse 1400px 900px at 40% 80%, rgba(60,140,170,0.09), rgba(0,0,0,0) 70%); }
+
+  #subs { position:absolute; left:0; top:846px; width:1920px; z-index:120; pointer-events:none; text-align:center; }
+  #subs .ln { font-size:44px; font-weight:600; letter-spacing:1.6px; color:#e7eef4;
+    text-shadow:0 0 26px rgba(0,0,0,0.95), 0 2px 3px rgba(0,0,0,0.9); opacity:0; white-space:nowrap; }
+
+  #punch { position:absolute; inset:0; z-index:110; pointer-events:none;
+    display:flex; align-items:center; justify-content:center; }
+  #punchTxt { font-size:150px; font-weight:900; letter-spacing:-6px; color:#f3f7fa; opacity:0;
+    text-shadow:0 0 60px rgba(0,0,0,0.9); }
+
+  #vignette { position:absolute; inset:0; z-index:130; pointer-events:none;
+    background:radial-gradient(ellipse 1200px 800px at 50% 48%, rgba(0,0,0,0) 42%, rgba(0,0,0,0.62) 100%); }
+  #grain { position:absolute; inset:-120px; z-index:140; pointer-events:none; opacity:0.10;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/></filter><rect width='180' height='180' filter='url(%23n)' opacity='0.55'/></svg>");
+    background-size:180px 180px; }
+  #flash { position:absolute; inset:0; z-index:150; pointer-events:none; background:#dfeaf2; opacity:0; }
+  #black { position:absolute; inset:0; z-index:160; pointer-events:none; background:#000; opacity:0; }
+</style>
+</head>
+<body>
+<div id="stage" data-composition-id="main" data-width="1920" data-height="1080" data-duration="78">
+
+  <div id="sky"></div>
+  <div id="horizon"></div>
+  <div id="fog1"></div>
+  <div id="fog2"></div>
+  <div id="cityback"></div>
+  <div id="cityfront"></div>
+  <div id="street"></div>
+  <div id="curb"></div>
+  <div id="smears"></div>
+  <div id="traffic"></div>
+  <div id="people"></div>
+  <div id="rainfar"></div>
+  <div id="rainmid"></div>
+
+  <div id="frame">
+    <div class="glass"></div>
+    <div class="bar jambL"></div><div class="bar jambR"></div>
+    <div class="bar head"></div><div class="bar sill"></div>
+    <div class="bar mullV"></div><div class="bar mullH"></div>
+  </div>
+  <div id="glassrain"></div>
+
+  <div id="glassBlock"></div>
+  <div id="figure"></div>
+
+  <div id="rainnear"></div>
+  <div id="sodium"></div>
+  <div id="coldtint"></div>
+
+  <div id="punch"><div id="punchTxt"></div></div>
+  <div id="subs"><div class="ln" id="l1"></div></div>
+  <div id="vignette"></div>
+  <div id="grain"></div>
+  <div id="flash"></div>
+  <div id="black"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<script>
+(function () {
+  var DUR = 78;
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+  function $(id) { return document.getElementById(id); }
+  function mk(tag, css, host) {
+    var d = document.createElement(tag);
+    for (var k in css) d.style[k] = css[k];
+    if (host) host.appendChild(d);
+    return d;
+  }
+
+  /* ---------- skyline ---------- */
+  var CITY = [[0,120,150],[130,90,210],[240,140,120],[400,110,260],[530,80,170],
+              [630,150,230],[800,100,190],[920,130,300],[1070,90,150],[1180,160,240],
+              [1360,110,200],[1490,80,170],[1590,140,260],[1750,90,190]];
+  var FRONT = [[40,170,210],[230,130,160],[380,200,120],[600,150,250],[770,180,140],
+               [970,140,230],[1130,210,180],[1360,160,200],[1540,190,150],[1750,150,240]];
+  var cb = $("cityback"), cf = $("cityfront"), i, b;
+  for (i = 0; i < CITY.length; i++) {
+    b = CITY[i];
+    mk("i", {left:b[0]+"px", width:b[1]+"px", height:b[2]+"px"}, cb);
+  }
+  for (i = 0; i < FRONT.length; i++) {
+    b = FRONT[i];
+    mk("i", {left:b[0]+"px", width:b[1]+"px", height:b[2]+"px"}, cf);
+  }
+
+  /* ---------- far windows ---------- */
+  var wins = [];
+  for (i = 0; i < 48; i++) {
+    var w = mk("div", {
+      left: Math.floor(rnd(20,1880)) + "px",
+      top: Math.floor(rnd(410,640)) + "px",
+      width: "6px", height: "9px",
+      background: Math.random() < 0.25 ? "#cfe2ee" : "#e8d5a4"
+    }, cf);
+    w.className = "win";
+    wins.push(w);
+  }
+
+  /* ---------- lamps + wet smears ---------- */
+  var LAMPS = [160, 700, 1240, 1780], sm = $("smears");
+  for (i = 0; i < LAMPS.length; i++) {
+    var s = mk("div", {left:(LAMPS[i]-13)+"px", top:"742px", height:"300px"}, sm);
+    s.className = "smear";
+  }
+  /* ---------- traffic: two lanes of light bars ---------- */
+  var cars = [];
+  function makeCar(lane, dur, color, w, start, back) {
+    var c = mk("div", {
+      position: "absolute",
+      height: "9px", width: w + "px",
+      top: (lane === 0 ? 766 : 802) + "px",
+      left: start + "px",
+      background: color,
+      borderRadius: "5px",
+      filter: "blur(1.2px)",
+      opacity: "0"
+    }, $("traffic"));
+    cars.push({el:c, dur:dur, back:back});
+  }
+  var L0 = [[28,130,0],[34,96,760],[26,150,1420],[32,110,2180]];
+  var L1 = [[30,64,0],[38,46,660],[27,74,1320],[33,52,1900]];
+  for (i = 0; i < L0.length; i++) makeCar(0, L0[i][0], "rgba(255,238,200,0.95)", L0[i][1], L0[i][2], false);
+  for (i = 0; i < L1.length; i++) makeCar(1, L1[i][0], "rgba(255,66,52,0.95)", L1[i][1], L1[i][2], true);
+
+  /* ---------- people walking below ---------- */
+  var walkers = [];
+  var WALK = [[300,236,1.0],[560,246,-1.0],[900,252,1.0],[1180,234,-1.0],[1430,242,1.0],[700,264,-1.0]];
+  function makeWalker(x, y, dir) {
+    var g = mk("div", {position:"absolute", left:x+"px", top:(y-36)+"px", width:"20px", height:"36px"}, $("people"));
+    g.innerHTML = '<div style="position:absolute;left:9px;top:0;width:4px;height:11px;background:#03060a;border-radius:2px"></div>' +
+      '<div style="position:absolute;left:9px;top:11px;width:3px;height:12px;background:#03060a"></div>' +
+      '<div class="lg" style="position:absolute;left:9px;top:22px;width:3px;height:14px;transform-origin:50% 0;background:#03060a"></div>' +
+      '<div class="rr" style="position:absolute;left:9px;top:22px;width:3px;height:14px;transform-origin:50% 0;background:#03060a"></div>';
+    var o = {el:g, dir:dir, lg:g.querySelector(".lg"), rr:g.querySelector(".rr")};
+    walkers.push(o);
+  }
+  for (i = 0; i < WALK.length; i++) makeWalker(WALK[i][0], WALK[i][1], WALK[i][2]);
+
+  /* ---------- rain ---------- */
+  function makeRain(host, count, hMin, hMax, wMax, op) {
+    var arr = [], h = $(host);
+    for (var k = 0; k < count; k++) {
+      var d = mk("i", {
+        left: Math.floor(rnd(-120,2120)) + "px",
+        height: Math.floor(rnd(hMin,hMax)) + "px",
+        width: rnd(0.9, wMax).toFixed(1) + "px",
+        opacity: op.toFixed(2),
+        transform: "rotate(9deg)"
+      }, h);
+      arr.push(d);
+    }
+    return arr;
+  }
+  var rainFar = makeRain("rainfar", 160, 26, 48, 1.4, 0.55);
+  var rainMid = makeRain("rainmid", 100, 60, 115, 2.0, 0.75);
+  var rainNear = makeRain("rainnear", 28, 150, 270, 3.2, 0.55);
+
+  /* beads on our side of the glass - static, they only slide */
+  var beads = [], gr = $("glassrain");
+  for (i = 0; i < 72; i++) {
+    var bd = mk("i", {
+      left: Math.floor(rnd(80,1840)) + "px",
+      top: Math.floor(rnd(-60,1120)) + "px",
+      height: Math.floor(rnd(8,26)) + "px",
+      opacity: (0.25 + Math.random() * 0.45).toFixed(2)
+    }, gr);
+    beads.push(bd);
+  }
+/* ---------- the figure: back to us, both hands on the sill ---------- */
+  var fig = $("figure"), INK = "#020406";
+  function bar(x1, y1, x2, y2, w, cls) {
+    var dx = x2 - x1, dy = y2 - y1;
+    var len = Math.sqrt(dx * dx + dy * dy);
+    var ang = Math.atan2(dy, dx) * 180 / Math.PI;
+    var d = mk("div", {
+      left: x1 + "px", top: (y1 - w / 2) + "px",
+      width: len + "px", height: w + "px",
+      background: INK, borderRadius: (w / 2) + "px",
+      transformOrigin: "0 50%",
+      transform: "rotate(" + ang + "deg)"
+    }, fig);
+    if (cls) d.className = cls;
+    return d;
+  }
+  function dot(cx, cy, r) {
+    return mk("div", {
+      left: (cx - r) + "px", top: (cy - r) + "px",
+      width: (r * 2) + "px", height: (r * 2) + "px",
+      borderRadius: "50%", background: INK
+    }, fig);
+  }
+
+  /* anchor points in the 420x760 box; the body leans onto the sill */
+  var HIPX = 196, HIPY = 332;
+  var NECKX = 202, NECKY = 198;
+  var SHLX = 174, SHRX = 230, SHY = 214;
+  var ELLX = 148, ELRX = 256, ELY = 272;
+  var HDX = 190, HDRX = 214, HDY = 372;
+
+  var legL = bar(HIPX, HIPY, 172, 706, 17, "legL");
+  var legR = bar(HIPX, HIPY, 224, 706, 17, "legR");
+  var torso = bar(HIPX, HIPY, NECKX, NECKY, 27, "torso");
+  bar(SHLX, SHY, ELLX, ELY, 11);
+  bar(SHRX, SHY, ELRX, ELY, 11);
+  bar(ELLX, ELY, HDX, HDY, 10);
+  bar(ELRX, ELY, HDRX, HDY, 10);
+  dot(NECKX, 176, 20);
+  /* hood - one flat mass, no face, never a face */
+  mk("div", {
+    left: (NECKX - 25) + "px", top: "150px",
+    width: "50px", height: "54px",
+    borderRadius: "25px 25px 22px 22px", background: INK
+  }, fig);
+
+  /* the cigarette, held in the right hand */
+  var cig = mk("div", {
+    left: (HDRX + 2) + "px", top: (HDY - 34) + "px",
+    width: "4px", height: "30px",
+    transformOrigin: "50% 100%", transform: "rotate(-20deg)",
+    background: "#141a20"
+  }, fig);
+
+  var tip = mk("div", {
+    left: (HDRX + 12) + "px", top: (HDY - 46) + "px",
+    width: "8px", height: "8px", borderRadius: "50%",
+    background: "#ff8a3d",
+    boxShadow: "0 0 18px 6px rgba(255,110,40,0.60)"
+  }, fig);
+
+  /* smoke puffs live in a layer of their own, inside the figure box */
+  var smokeLayer = mk("div", {left:"0px", top:"0px", width:"420px", height:"760px", overflow:"visible"}, fig);
+  var SMOKE = [];
+  for (i = 0; i < 30; i++) {
+    var p = mk("div", {
+      left: (HDRX + 12) + "px", top: (HDY - 50) + "px",
+      width: "26px", height: "26px", borderRadius: "50%",
+      background: "radial-gradient(circle, rgba(200,216,228,0.50), rgba(200,216,228,0) 70%)",
+      opacity: "0"
+    }, smokeLayer);
+    SMOKE.push(p);
+  }
+/* =========================================================
+     time
+     ========================================================= */
+  var tl = gsap.timeline({ paused: true });
+
+  /* one long push in - we are leaning at the glass the whole time */
+  tl.fromTo("#stage", { scale: 1.0 }, { scale: 1.05, duration: DUR, ease: "none" }, 0);
+
+  /* rain, three depths, three speeds. this is the parallax. */
+  function falling(arr, dur, gap) {
+    for (var k = 0; k < arr.length; k++) {
+      tl.fromTo(arr[k], { y: 0 }, { y: 1380, duration: dur, ease: "none", repeat: -1 }, k * gap);
+    }
+  }
+  falling(rainFar, 1.15, 0.020);
+  falling(rainMid, 0.62, 0.026);
+  falling(rainNear, 0.30, 0.085);
+
+  for (i = 0; i < beads.length; i++) {
+    tl.fromTo(beads[i], { y: 0 }, { y: 1120, duration: rnd(10, 22), ease: "none", repeat: -1 }, rnd(0, 16));
+  }
+
+  /* traffic never stops. it is the sound of a city not caring. */
+  for (i = 0; i < cars.length; i++) {
+    (function (c) {
+      tl.fromTo(c.el, { x: 0 }, { x: c.back ? -2500 : 2500, duration: c.dur, ease: "none", repeat: -1 }, rnd(0, 6));
+      tl.to(c.el, { opacity: 0.9, duration: 2.0, ease: "sine.out" }, 0);
+    })(cars[i]);
+  }
+
+  /* people shuffle forever down there */
+  for (i = 0; i < walkers.length; i++) {
+    (function (w) {
+      var ph = rnd(0, 1);
+      tl.to(w.lg, { rotation: 24, duration: 0.5, ease: "sine.inOut", repeat: -1, yoyo: true }, ph);
+      tl.to(w.rr, { rotation: -24, duration: 0.5, ease: "sine.inOut", repeat: -1, yoyo: true }, ph);
+      tl.fromTo(w.el, { x: w.dir > 0 ? -60 : 1980 }, { x: w.dir > 0 ? 1980 : -60, duration: rnd(28, 46), ease: "none", repeat: -1 }, rnd(0, 12));
+      tl.set(w.el, { opacity: 0.9 }, 0);
+    })(walkers[i]);
+  }
+
+  /* the far city is going out, one window at a time */
+  for (i = 0; i < wins.length; i++) {
+    (function (w) {
+      tl.to(w, { opacity: rnd(0.35, 0.85), duration: 0.5, ease: "none" }, rnd(0.4, 7));
+      tl.to(w, { opacity: 0, duration: rnd(0.6, 1.6), ease: "sine.inOut" }, rnd(6, 74));
+    })(wins[i]);
+  }
+
+  /* ---------- the cigarette: three drags, each one longer ---------- */
+  function drag(at, peak, hold) {
+    tl.to(tip, { scale: peak, opacity: 1, duration: 0.45, ease: "sine.out" }, at);
+    tl.to(tip, { scale: 1.0, opacity: 0.82, duration: hold, ease: "sine.inOut" }, at + 0.45);
+    /* the ember paints the glass in front of his face for a moment */
+    tl.to("#glassBlock", { opacity: 0.55, duration: 0.6, ease: "sine.out" }, at);
+    tl.to("#glassBlock", { opacity: 0, duration: 2.4, ease: "sine.inOut" }, at + 0.6);
+  }
+  drag(10.0, 1.9, 1.6);
+  drag(29.0, 2.1, 2.1);
+  drag(49.0, 2.4, 2.6);
+
+  /* smoke columns, one per drag, growing */
+  var sc = 0;
+  function puff(at, count, life, spread) {
+    for (var k = 0; k < count; k++) {
+      (function (el, k) {
+        tl.set(el, { x: 0, y: 0, scale: 0.35, opacity: 0 }, at + k * 0.22);
+        tl.to(el, { opacity: rnd(0.22, 0.42), duration: 0.6, ease: "sine.out" }, at + k * 0.22);
+        tl.to(el, {
+          x: rnd(4, spread), y: rnd(-200, -110), scale: rnd(1.8, 3.2), opacity: 0,
+          duration: life + rnd(0, 1.6), ease: "sine.out"
+        }, at + k * 0.22 + 0.2);
+      })(SMOKE[sc++ % SMOKE.length], k);
+    }
+  }
+  puff(10.4, 7, 3.2, 46);
+  puff(29.4, 9, 3.6, 60);
+  puff(49.4, 12, 4.0, 76);
+/* ---------- subtitles: negative, plain, said flat ---------- */
+  var SUBS = [
+    [4.5,  "everything down there is going somewhere"],
+    [15.0, "i am not going anywhere"],
+    [24.0, "i keep thinking tonight will be the night<br>it stops feeling like this"],
+    [35.0, "it is not"],
+    [42.0, "the rain does not wash anything off"],
+    [53.0, "it just makes the lights harder to look at"],
+    [62.0, "i have been standing here long enough<br>to watch the whole street empty out"],
+    [71.0, "and i am still here"]
+  ];
+  var l1 = $("l1");
+  for (i = 0; i < SUBS.length; i++) {
+    (function (at, txt) {
+      tl.call(function () { l1.innerHTML = txt; }, null, at);
+      tl.set(l1, { opacity: 0, y: 10 }, at);
+      tl.to(l1, { opacity: 1, y: 0, duration: 0.9, ease: "sine.out" }, at + 0.05);
+      tl.to(l1, { opacity: 0, duration: 1.3, ease: "sine.in" }, at + 4.6);
+    })(SUBS[i][0], SUBS[i][1]);
+  }
+
+  /* ---------- lightning: three, uneven, the whole frame blinks ---------- */
+  function strike(at, strength) {
+    tl.to("#flash", { opacity: strength, duration: 0.06, ease: "none" }, at);
+    tl.to("#flash", { opacity: 0.10, duration: 0.10, ease: "none" }, at + 0.06);
+    tl.to("#flash", { opacity: strength * 0.7, duration: 0.05, ease: "none" }, at + 0.16);
+    tl.to("#flash", { opacity: 0, duration: 0.9, ease: "sine.out" }, at + 0.21);
+    /* the far city jumps forward for a frame - silhouette is the point */
+    tl.to("#cityback", { opacity: 0.95, duration: 0.05, ease: "none" }, at);
+    tl.to("#cityback", { opacity: 0.55, duration: 1.4, ease: "sine.out" }, at + 0.16);
+    tl.to("#cityfront", { opacity: 1, duration: 0.05, ease: "none" }, at);
+  }
+  strike(21.5, 0.55);
+  strike(45.5, 0.42);
+  strike(66.0, 0.72);
+
+  /* ---------- the ending ---------- */
+  /* the street lamps go out first, one by one, from the far side of the frame */
+  tl.to("#smears", { opacity: 0, duration: 3.0, ease: "sine.inOut" }, 58.0);
+  tl.to("#sodium", { opacity: 0.0, duration: 4.0, ease: "sine.inOut" }, 60.0);
+  /* the traffic keeps coming for a while in a darker street, then thins out */
+  tl.to("#traffic", { opacity: 0.45, duration: 6.0, ease: "sine.inOut" }, 66.0);
+  tl.to("#people", { opacity: 0.30, duration: 6.0, ease: "sine.inOut" }, 64.0);
+  /* the cigarette is the last light in the frame */
+  tl.to("#traffic", { opacity: 0.0, duration: 3.0, ease: "sine.in" }, 73.0);
+  tl.to("#people", { opacity: 0.0, duration: 3.0, ease: "sine.in" }, 73.0);
+  /* then that goes too */
+  tl.to(tip, { opacity: 0.0, duration: 2.2, ease: "sine.in" }, 74.4);
+  tl.to([legL, legR, torso], { opacity: 0.0, duration: 1.6, ease: "sine.in" }, 76.0);
+  tl.to("#stage", { opacity: 0.0, duration: 1.4, ease: "sine.in" }, 76.4);
+
+  /* contract */
+  tl.set({}, {}, DUR);
+  window.__timelines = window.__timelines || {};
+  window.__timelines["main"] = tl;
+})();
+</script>
+</body>
+</html>
